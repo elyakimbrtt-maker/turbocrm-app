@@ -6,7 +6,6 @@ import { loadAuthUser, resolveActiveOrg } from "@/lib/auth/server";
 import { InboxLayout } from "@/components/inbox/InboxLayout";
 import { CabecalhoDaPagina } from "@/components/turbocrm/CabecalhoDaPagina";
 import { ContagemDeConversas } from "@/components/turbocrm/ContagemDeConversas";
-import { Headset } from "@/lib/ui/icons";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { createClient } from "@/lib/supabase/server";
 import { lerRascunho, type AvisoDeRascunho } from "@/lib/inbox/rascunho-sugerido";
@@ -83,7 +82,7 @@ export default async function InboxPage({
           descricao="Cada conversa, uma nova oportunidade."
           contagem={<ContagemDeConversas />}
           secao="Atendimento"
-          IconeDaSecao={Headset}
+          iconeDaSecao="headset"
         />
       </div>
       <InboxLayout
