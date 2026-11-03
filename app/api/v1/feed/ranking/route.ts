@@ -3,7 +3,7 @@
  *
  * GET: quem vendeu mais no mês (`?mes=AAAA-MM`, padrão o atual), contando os
  * negócios GANHOS com `closed_at` no mês, por responsável. Todo membro que
- * atende aparece, mesmo com zero — ranking que esconde quem não vendeu não
+ * atende (papel `agent`) aparece, mesmo com zero — ranking que esconde quem não vendeu não
  * motiva quem está começando. Também diz se o ranking está ligado.
  * PATCH `{ ativo }`: gestor (`manager`+) liga ou desliga para a empresa. Com
  * ele desligado, o GET responde `ativo: false` e nenhuma linha — a decisão dos
@@ -56,7 +56,8 @@ export async function GET(req: NextRequest): Promise<Response> {
       .select("user_id, role")
       .eq("organization_id", orgId)
       .is("revoked_at", null)
-      .neq("role", "viewer"),
+      // Só quem vende: gerente e administrador não disputam o ranking.
+      .eq("role", "agent"),
     admin
       .from("crm_leads")
       .select("owner_user_id, value_cents")
@@ -75,7 +76,9 @@ export async function GET(req: NextRequest): Promise<Response> {
     placar.set(m.user_id, { vendas: 0, valor_cents: 0 });
   }
   for (const g of (ganhos.data ?? []) as Array<{ owner_user_id: string; value_cents: number | null }>) {
-    const atual = placar.get(g.owner_user_id) ?? { vendas: 0, valor_cents: 0 };
+    // Venda de quem não é atendente (gerente, admin) não entra no placar.
+    const atual = placar.get(g.owner_user_id);
+    if (!atual) continue;
     atual.vendas += 1;
     atual.valor_cents += Number(g.value_cents ?? 0);
     placar.set(g.owner_user_id, atual);

@@ -332,6 +332,11 @@ export function PainelDoGerente() {
               <Target size={18} aria-hidden /> {t("Vendedores")}
               <span className="text-xs font-normal text-text-muted">· {rotuloPeriodo}</span>
             </h2>
+            {vendedores.length === 0 && (
+              <p className="tcrm-cartao-inicio rounded-[1.5rem] border p-5 text-sm text-text-muted">
+                {t("Nenhum atendente na equipe ainda. Convide os vendedores com o papel Atendente em Equipe › Convidar — gerentes e administradores não entram no painel.")}
+              </p>
+            )}
             <ol className="grid gap-3 lg:grid-cols-2">
               {vendedores.map((v, i) => (
                 <LinhaDoVendedor key={v.user_id} v={v} indice={i} />
