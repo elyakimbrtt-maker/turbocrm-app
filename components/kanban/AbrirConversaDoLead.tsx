@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useT } from "@/hooks/i18n/useT";
-import { ArrowRight, ChatCircle } from "@/lib/ui/icons";
+import { ArrowRight, ChatCircle, WhatsappLogo } from "@/lib/ui/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -158,21 +158,32 @@ export function AbrirConversaDoLead({ contactId, phone, variante = "card" }: Pro
       disabled={!podeAbrir || abrindo}
       aria-busy={abrindo}
       title={podeAbrir ? t("Abrir conversa no Inbox") : semTelefone}
+      // TurboCRM: pílula de 40px (alvo de toque confortável), ícone do canal
+      // num círculo verde e seta que anda no hover — a ação mais usada do card
+      // não pode ter cara de texto de rodapé.
       className={cn(
-        "group/conversa mt-1 flex w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left text-[11px]",
-        "transition-colors",
-        podeAbrir
-          ? "text-text-muted hover:bg-muted hover:text-foreground"
-          : "cursor-not-allowed text-text-muted opacity-80",
+        "tcrm-acao-conversa group/conversa mt-2 flex h-10 w-full items-center gap-2.5 rounded-full border pl-1 pr-3 text-left text-[13px] font-semibold",
+        !podeAbrir && "cursor-not-allowed opacity-70",
         abrindo && "cursor-wait",
       )}
     >
-      <ChatCircle size={12} weight="regular" className="shrink-0" aria-hidden />
-      <span>{abrindo ? t("Abrindo…") : t("Abrir conversa")}</span>
-      {!podeAbrir && (
+      <span className="tcrm-acao-conversa-icone flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+        <WhatsappLogo size={18} weight="fill" aria-hidden />
+      </span>
+      <span className="min-w-0 flex-1 truncate">
+        {abrindo ? t("Abrindo…") : t("Abrir conversa")}
+      </span>
+      {podeAbrir ? (
+        <ArrowRight
+          size={15}
+          weight="bold"
+          className="shrink-0 opacity-60 transition-transform group-hover/conversa:translate-x-0.5 group-hover/conversa:opacity-100"
+          aria-hidden
+        />
+      ) : (
         // O motivo visível: `title` some para quem não tem mouse, e o leitor de
         // tela não anuncia botão desabilitado.
-        <span className="ml-auto shrink-0 text-text-muted">{t("sem telefone")}</span>
+        <span className="shrink-0 text-[11px] font-normal text-text-muted">{t("sem telefone")}</span>
       )}
     </button>
   );

@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { MouseEvent } from "react";
 
 import { useT } from "@/hooks/i18n/useT";
-import { ChatCircle } from "@/lib/ui/icons";
+import { ArrowRight, WhatsappLogo } from "@/lib/ui/icons";
 import type { Lead } from "@/lib/types/leads";
 import { cn } from "@/lib/utils";
 import { AbrirConversaDoLead, temAlvoParaAbrir } from "./AbrirConversaDoLead";
@@ -69,25 +69,36 @@ export function ConversaSlot({
       // destinos para um gesto.
       onClick={(e: MouseEvent) => e.stopPropagation()}
       onPointerDown={(e: MouseEvent) => e.stopPropagation()}
+      // TurboCRM: mesmo botão em pílula do "Abrir conversa" — quem bate o olho
+      // reconhece a porta para o WhatsApp nos dois estados do card.
       className={cn(
-        "group/conversa mt-1 flex items-center gap-1.5 rounded-md px-1 py-0.5 text-[11px]",
-        "text-text-muted transition-colors hover:bg-muted hover:text-foreground",
+        "tcrm-acao-conversa group/conversa mt-2 flex h-10 items-center gap-2.5 rounded-full border pl-1 pr-3 text-[12px]",
+        temNaoLidas && "tcrm-acao-conversa-nova",
       )}
       title={t("Abrir esta conversa no Inbox")}
     >
-      <ChatCircle size={12} weight="regular" className="shrink-0" aria-hidden />
-      <span className="truncate">
-        {preview || <span className="italic">{t("conversa sem mensagens")}</span>}
+      <span className="tcrm-acao-conversa-icone flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
+        <WhatsappLogo size={18} weight="fill" aria-hidden />
       </span>
-      {temNaoLidas && (
+      <span className="min-w-0 flex-1 truncate">
+        {preview || <span className="italic text-text-muted">{t("conversa sem mensagens")}</span>}
+      </span>
+      {temNaoLidas ? (
         // O número, não um ponto: "3 sem ler" e "12 sem ler" pedem urgências
         // diferentes, e um ponto colapsa as duas.
         <span
-          className="ml-auto shrink-0 rounded-full bg-primary px-1.5 text-[10px] font-medium text-primary-foreground tabular-nums"
+          className="tcrm-acao-conversa-contador ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold tabular-nums"
           aria-label={`${conversa.unread} ${t("sem ler")}`}
         >
           {conversa.unread}
         </span>
+      ) : (
+        <ArrowRight
+          size={15}
+          weight="bold"
+          className="shrink-0 opacity-60 transition-transform group-hover/conversa:translate-x-0.5 group-hover/conversa:opacity-100"
+          aria-hidden
+        />
       )}
     </Link>
   );

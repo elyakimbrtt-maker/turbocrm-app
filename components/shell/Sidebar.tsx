@@ -34,7 +34,7 @@ interface SidebarContentProps {
  * itens e sete `usePermission()` viviam aqui — e divergiam do hub de
  * Configurações e das abas de IA, que mantinham suas próprias listas.
  */
-export function SidebarContentDeskcomm({
+export function SidebarContentOriginal({
   collapsed,
   showCollapseControl = true,
   onNavigate,
@@ -522,7 +522,7 @@ function BotaoDeRecolher({
 
 /**
  * TurboCRM: o menu da casca é o `MenuTurbo` (Figma "TurboCRM · Inbox"). O
- * desenho original segue exportado como `SidebarContentDeskcomm`, para a fusão
+ * desenho original segue exportado como `SidebarContentOriginal`, para a fusão
  * com as versões novas do DeskcommCRM continuar simples.
  */
 export function SidebarContent(props: SidebarContentProps) {
