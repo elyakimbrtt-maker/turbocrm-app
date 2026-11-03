@@ -114,6 +114,8 @@ export {
   FileText,
   Lock,
   LockOpen,
+  // tela de acesso do TurboCRM (botão Entrar)
+  Lightning,
   Receipt,
   Tag,
   Question,

@@ -3,6 +3,7 @@ import { marcaEhADoProduto } from "@/lib/branding";
 import { marcaDaSaida } from "@/lib/branding/saida";
 import { createClient } from "@/lib/supabase/server";
 import { IdiomaProvider } from "@/lib/i18n/IdiomaProvider";
+import { ShieldCheck } from "@/lib/ui/icons";
 import { idiomaDoVisitante } from "@/lib/i18n/idiomaAnonimo";
 
 /**
@@ -57,68 +58,78 @@ export default async function PublicLayout({ children }: { children: React.React
   } = await supabase.auth.getUser();
   const locale = await idiomaDoVisitante((user?.user_metadata?.locale as string | undefined) ?? null);
 
+  // TurboCRM: a fachada é sempre escura (desenho do Figma "Login por convite"),
+  // então o logo preferido é o da aparência escura; sem ele, o claro.
+  const logoDaFachada = marca.logoDarkUrl ?? marca.logoUrl;
+  const ano = new Date().getFullYear();
+
   return (
     <IdiomaProvider locale={locale}>
-      <div className="flex min-h-screen items-center justify-center bg-background p-6">
-        <div className="w-full max-w-sm space-y-6">
-          {marca.logoUrl || marca.logoDarkUrl ? (
-            <div className="flex justify-center">
-              {/*
-                <img> em vez de next/image pelo mesmo motivo da barra lateral: a URL
-                é de quem hospeda e o `next/image` exige allowlist de domínios
-                fechada em BUILD — a imagem pré-buildada do self-host recusaria o
-                domínio do operador. Altura máxima de 80 px e largura máxima de 192 px, sem distorcer
-                arte de proporção desconhecida nem ampliar arquivos pequenos.
+      <div data-theme="dark" className="tcrm-acesso relative flex min-h-dvh overflow-hidden">
+        {/* Faixas de velocidade nos cantos — desenho, sem conteúdo. */}
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 h-[220px] w-[228px]"
+          viewBox="0 0 228 220"
+        >
+          <polygon points="0,0 72,0 0,117" fill="#ff0a14" />
+          <polygon points="128,0 146,0 18,220 0,220" fill="#4a0a0d" />
+          <polygon points="206,0 228,0 92,220 72,220" fill="#4a0a0d" />
+        </svg>
+        <svg
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 left-0 h-[152px] w-[390px]"
+          viewBox="0 0 390 152"
+        >
+          <polygon points="0,0 0,34 312,152 390,152" fill="#ff0a14" />
+          <polygon points="0,60 0,78 205,152 236,152" fill="#ff0a14" />
+        </svg>
 
-                O `alt` é o nome DESTA resolução (`marca.nome`), e não o de
-                `branding()`: é a legenda da imagem que está ali, e nomeá-la com a
-                marca de outra fonte descreveria uma marca que não é a do logo.
-
-                O `data-testid` é lido por `tests/e2e/marca-logo.spec.ts`, que prova
-                que o logo da EMPRESA não vaza para cá. Sem ele a spec caía na
-                "primeira <img> da página", e uma asserção de negação com seletor
-                largo passa sozinha assim que outra imagem entra na tela.
-              */}
-              <div
-                className={
-                  marca.logoDarkUrl
-                    ? "rounded-md"
-                    : "rounded-md dark:bg-white dark:px-3 dark:py-2 dark:shadow-sm"
-                }
-              >
-                {marca.logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    data-testid="logo-da-fachada"
-                    src={marca.logoUrl}
-                    alt={marca.nome}
-                    className={
-                      marca.logoDarkUrl
-                        ? "h-auto max-h-20 w-auto max-w-[12rem] object-contain dark:hidden"
-                        : "h-auto max-h-20 w-auto max-w-[12rem] object-contain"
-                    }
-                  />
-                ) : (
-                  <span className="dark:hidden">{marca.nome}</span>
-                )}
-                {marca.logoDarkUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    data-testid="logo-escuro-da-fachada"
-                    src={marca.logoDarkUrl}
-                    alt={marca.nome}
-                    className="hidden h-auto max-h-20 w-auto max-w-[12rem] object-contain dark:block"
-                  />
-                ) : null}
+        <main className="relative z-10 flex w-full items-center justify-center p-4 sm:p-8 lg:w-[44%] lg:shrink-0 lg:p-10">
+          <div className="tcrm-acesso-painel flex w-full max-w-[36rem] flex-col rounded-[1.75rem] px-6 py-10 sm:px-12 sm:py-14">
+            {logoDaFachada ? (
+              <div className="mb-10 flex justify-center">
+                {/*
+                  <img> e não next/image: a URL é de quem hospeda e o next/image
+                  exige a lista de domínios fechada no build (ver a barra lateral).
+                */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  data-testid={marca.logoDarkUrl ? "logo-escuro-da-fachada" : "logo-da-fachada"}
+                  src={logoDaFachada}
+                  alt={marca.nome}
+                  className="h-auto max-h-24 w-auto max-w-[20rem] object-contain"
+                />
               </div>
-            </div>
-          ) : marcaEhADoProduto({ name: marca.nome, logoUrl: null }) ? (
-            <div className="flex justify-center">
-              <LogotipoDoProduto nome={marca.nome} className="h-12 w-auto" />
-            </div>
-          ) : null}
-          {children}
-        </div>
+            ) : marcaEhADoProduto({ name: marca.nome, logoUrl: null }) ? (
+              <div className="mb-10 flex justify-center">
+                <LogotipoDoProduto nome={marca.nome} className="h-12 w-auto" />
+              </div>
+            ) : (
+              <p className="mb-10 text-center text-2xl font-bold">{marca.nome}</p>
+            )}
+            <div className="space-y-6">{children}</div>
+            <footer className="mt-12 flex items-center justify-between gap-4 text-xs text-text-muted">
+              <span>
+                © {ano} {marca.nome}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck size={16} aria-hidden />
+                Seus dados seguros
+              </span>
+            </footer>
+          </div>
+        </main>
+
+        {/* Composição do Figma: moto, chamada e o painel no tablet. */}
+        <aside aria-hidden className="relative hidden flex-1 lg:block">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/turbocrm/login-hero.webp"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-left"
+          />
+        </aside>
       </div>
     </IdiomaProvider>
   );

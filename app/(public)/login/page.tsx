@@ -3,11 +3,13 @@ import Link from "next/link";
 import { EntrarComGoogle } from "@/components/auth/EntrarComGoogle";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { verifyInviteToken } from "@/lib/auth/invite-token";
+import { modoDeCadastro } from "@/lib/auth/politica-de-cadastro";
 import { marcaDaSaida } from "@/lib/branding/saida";
 import { createClient } from "@/lib/supabase/server";
 import { idiomaDoVisitante } from "@/lib/i18n/idiomaAnonimo";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { tituloDaTelaPublica } from "@/lib/i18n/titulo-da-tela-publica";
+import { ShieldCheck } from "@/lib/ui/icons";
 
 // A aba no idioma do visitante, como o corpo (`lib/i18n/titulo-da-tela-publica.ts`).
 export const generateMetadata = () => tituloDaTelaPublica((t) => t("Entrar"));
@@ -33,12 +35,14 @@ export default async function LoginPage({
   );
   const t = (texto: string) => traduzir(texto, idioma);
   const marca = await marcaDaSaida(null);
+  // Só por convite: o "Criar conta" levaria a uma tela que só devolve um aviso.
+  const soPorConvite = (await modoDeCadastro()) === "so_convite";
 
   return (
     <div className="space-y-6">
       <div className="space-y-1.5 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("Entrar")}</h1>
-        <p className="text-sm text-muted-foreground">{marca.nome}</p>
+        <h1 className="text-[1.75rem] font-semibold tracking-tight">{t("Acesse sua conta")}</h1>
+        <p className="sr-only">{marca.nome}</p>
       </div>
       {reset === "success" && (
         <div
@@ -144,18 +148,26 @@ export default async function LoginPage({
           )}
         </div>
       )}
-      <LoginForm next={next} email={convite?.email} />
-      <EntrarComGoogle next={next} />
-      <div className="space-y-2 text-center text-sm">
-        <p>
+      <LoginForm
+        next={next}
+        email={convite?.email}
+        esqueci={
           <Link
             href="/login/forgot"
-            className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+            className="text-sm font-medium text-accent underline-offset-4 hover:underline"
           >
-            {t("Esqueci minha senha")}
+            {t("Esqueceu sua senha?")}
           </Link>
+        }
+      />
+      <EntrarComGoogle next={next} />
+      {soPorConvite ? (
+        <p className="flex items-start justify-center gap-2.5 px-2 text-center text-sm text-muted-foreground">
+          <ShieldCheck size={20} aria-hidden className="mt-px shrink-0" />
+          <span>{t("Acesso exclusivo para usuários convidados por e-mail pelo administrador.")}</span>
         </p>
-        <p className="text-muted-foreground">
+      ) : (
+        <p className="text-center text-sm text-muted-foreground">
           {t("Não tem conta?")}{" "}
           <Link
             href={convite && invite ? `/signup?invite=${encodeURIComponent(invite)}` : "/signup"}
@@ -164,7 +176,7 @@ export default async function LoginPage({
             {t("Criar conta")}
           </Link>
         </p>
-      </div>
+      )}
     </div>
   );
 }

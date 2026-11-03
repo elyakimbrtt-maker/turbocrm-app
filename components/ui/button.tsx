@@ -80,8 +80,15 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    // `tcrm-botao` + `data-variant`: o vidro do TurboCRM (app/turbocrm.css) se
+    // pendura aqui sem tocar nas variantes de cima.
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }), "tcrm-botao")}
+        data-variant={variant ?? "primary"}
+        ref={ref}
+        {...props}
+      />
     );
   },
 );

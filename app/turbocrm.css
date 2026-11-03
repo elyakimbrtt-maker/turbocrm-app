@@ -1,0 +1,146 @@
+/*
+ * TurboCRM (fork Motoline) — vidro nas barras e nos botões, e a tela de acesso.
+ *
+ * Fica num arquivo próprio, fora do `globals.css`, para que a fusão com as
+ * versões novas do DeskcommCRM não tropece aqui. As regras NÃO usam `@layer`
+ * de propósito: o Tailwind 4 põe os utilitários em camadas, e CSS sem camada
+ * vence qualquer camada — assim `bg-card`/`bg-accent` dos componentes cedem a
+ * estas regras sem `!important`.
+ *
+ * O vidro é `backdrop-filter` do navegador. Onde ele não existe, ou quem pediu
+ * menos transparência no sistema, a barra fica sólida — nunca ilegível.
+ */
+
+/* ── Fundo ambiente: dá ao vidro o que desfocar ─────────────────────────── */
+body {
+  background-image:
+    radial-gradient(1100px 600px at 0% 0%, rgb(229 42 48 / 0.07), transparent 60%),
+    radial-gradient(900px 520px at 100% 100%, rgb(229 42 48 / 0.05), transparent 60%);
+  background-attachment: fixed;
+}
+[data-theme="dark"] body,
+body:where([data-theme="dark"] *) {
+  background-image:
+    radial-gradient(1100px 600px at 0% 0%, rgb(255 59 66 / 0.10), transparent 60%),
+    radial-gradient(900px 520px at 100% 100%, rgb(255 59 66 / 0.07), transparent 60%);
+}
+
+/* ── Barras: lateral, topo e a de baixo do celular ─────────────────────── */
+.tcrm-vidro-barra {
+  background-color: color-mix(in srgb, var(--color-surface) 62%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55);
+}
+[data-theme="dark"] .tcrm-vidro-barra {
+  background-color: color-mix(in srgb, var(--color-surface) 58%, transparent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+/* ── Botões ────────────────────────────────────────────────────────────── */
+.tcrm-botao[data-variant="primary"],
+.tcrm-botao[data-variant="default"] {
+  background-color: var(--color-accent);
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-accent) 78%, white) 0%,
+    var(--color-accent) 52%,
+    color-mix(in srgb, var(--color-accent) 72%, black) 100%
+  );
+  border: 1px solid rgb(255 255 255 / 0.16);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 8px 20px -10px color-mix(in srgb, var(--color-accent) 80%, transparent);
+}
+.tcrm-botao[data-variant="primary"]:hover,
+.tcrm-botao[data-variant="default"]:hover {
+  filter: brightness(1.08);
+}
+
+.tcrm-botao[data-variant="secondary"],
+.tcrm-botao[data-variant="outline"] {
+  background-color: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
+  border-color: rgb(0 0 0 / 0.08);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+[data-theme="dark"] .tcrm-botao[data-variant="secondary"],
+[data-theme="dark"] .tcrm-botao[data-variant="outline"] {
+  border-color: rgb(255 255 255 / 0.10);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07);
+}
+.tcrm-botao[data-variant="secondary"]:hover,
+.tcrm-botao[data-variant="outline"]:hover {
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+}
+
+.tcrm-botao[data-variant="ghost"]:hover {
+  background-color: color-mix(in srgb, var(--color-surface) 50%, transparent);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Tela de acesso (login, cadastro, recuperação, MFA) ────────────────── */
+.tcrm-acesso[data-theme="dark"] {
+  --color-bg: #08090b;
+  --color-surface: #121418;
+  --color-surface-elevated: #1a1c21;
+  --color-text: #f4f5f7;
+  --color-text-muted: #9a9ea6;
+  --color-text-subtle: #6f737b;
+  --color-border: rgb(255 255 255 / 0.10);
+  --color-border-strong: rgb(255 255 255 / 0.18);
+  background-color: #050607;
+  color: var(--color-text);
+}
+
+.tcrm-acesso-painel {
+  background-color: rgb(18 20 24 / 0.55);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 30px 80px -30px rgb(0 0 0 / 0.8);
+}
+
+/* Campos em pílula de vidro, como no Figma. */
+.tcrm-acesso input[type="email"],
+.tcrm-acesso input[type="password"],
+.tcrm-acesso input[type="text"] {
+  height: 3.5rem;
+  border-radius: 9999px;
+  background-color: rgb(255 255 255 / 0.04);
+  border-color: rgb(255 255 255 / 0.10);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.tcrm-acesso input:focus-visible {
+  border-color: color-mix(in srgb, var(--color-accent) 70%, transparent);
+}
+.tcrm-acesso .tcrm-botao[data-variant="primary"],
+.tcrm-acesso .tcrm-botao[data-variant="default"] {
+  border-radius: 9999px;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tcrm-vidro-barra,
+  .tcrm-botao[data-variant="secondary"],
+  .tcrm-botao[data-variant="outline"],
+  .tcrm-acesso-painel {
+    background-color: var(--color-surface);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .tcrm-vidro-barra,
+  .tcrm-botao[data-variant="secondary"],
+  .tcrm-botao[data-variant="outline"],
+  .tcrm-acesso-painel {
+    background-color: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
