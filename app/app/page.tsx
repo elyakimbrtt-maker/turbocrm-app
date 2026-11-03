@@ -4,11 +4,14 @@ import { homeDaInterface } from "@/lib/navigation/interface";
 export default async function AppHome() {
   const user = await requireAuth();
   const org = await resolveActiveOrg(user);
+  // TurboCRM: quem pertence a uma empresa começa pela página Início (feed e
+  // ranking da equipe). O super-admin sem empresa segue a regra de sempre.
+  if (org) redirect("/app/inicio");
   redirect(
     homeDaInterface(
-      org?.interface_settings,
+      null,
       user.is_platform_admin && !user.support,
-      org?.role ?? null,
+      null,
     ),
   );
 }

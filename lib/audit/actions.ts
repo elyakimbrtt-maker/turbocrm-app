@@ -1414,6 +1414,12 @@ export const AUDIT_ACTIONS = [
   // Aviso escrito pelo admin da empresa e empurrado para a equipe (#1418). O
   // metadata leva só a janela de publicação; título e corpo ficam em `avisos`.
   "aviso.created",
+  // TurboCRM: o feed interno da equipe. O metadata leva só ids e contagens —
+  // o texto do post fica em `turbocrm_feed_posts`.
+  "feed.post_created",
+  "feed.post_deleted",
+  "feed.post_pinned",
+  "feed.ranking_toggled",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

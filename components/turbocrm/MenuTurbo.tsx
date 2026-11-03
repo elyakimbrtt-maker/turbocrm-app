@@ -35,6 +35,7 @@ import {
   DotsThree,
   Funnel,
   Gear,
+  House,
   IdentificationCard,
   Inbox,
   Lightning,
@@ -52,6 +53,8 @@ interface ItemTurbo {
   icone: Icone;
   contador?: "fila" | "casos";
   saude?: boolean;
+  /** Aparece para todo mundo, sem depender da interface da organização. */
+  sempre?: boolean;
 }
 
 interface GrupoTurbo {
@@ -62,6 +65,12 @@ interface GrupoTurbo {
 
 /** A ordem e os nomes do Figma. Cada `href` é uma tela que já existe. */
 const GRUPOS_TURBO: GrupoTurbo[] = [
+  {
+    // A página Início (feed + ranking) é de todos: vendedor e gestor.
+    id: "inicio",
+    rotulo: "Equipe",
+    itens: [{ href: "/app/inicio", rotulo: "Início", icone: House, sempre: true }],
+  },
   {
     id: "atendimento",
     rotulo: "Atendimento",
@@ -141,7 +150,7 @@ export function MenuTurbo({
 
   const grupos = GRUPOS_TURBO.map((g) => ({
     ...g,
-    itens: g.itens.filter((i) => visiveis.has(i.href)),
+    itens: g.itens.filter((i) => i.sempre || visiveis.has(i.href)),
   })).filter((g) => g.itens.length > 0);
 
   // "Mais": tudo o que o menu original mostraria (destinos e hubs "Ver tudo"),

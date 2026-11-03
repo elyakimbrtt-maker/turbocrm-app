@@ -31,6 +31,8 @@ const BASE = path.join(RAIZ, "app", "app");
  * e quem revisar o PR a lê.
  */
 const NAV_ALLOWLIST: Record<string, string> = {
+  "/app/inicio":
+    "TurboCRM: a página Início (feed + ranking) tem porta própria no topo do MenuTurbo, fora do catálogo",
   "/app": "redirect para /app/inbox — não é tela, é o ponto de entrada",
   "/app/ai/agents/new":
     "sub-fluxo de criar agente, alcançado pelo botão dentro da lista de Agentes",
