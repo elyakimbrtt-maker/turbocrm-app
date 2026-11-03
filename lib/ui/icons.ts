@@ -116,6 +116,12 @@ export {
   LockOpen,
   // tela de acesso do TurboCRM (botão Entrar)
   Lightning,
+  // menu e cabeçalho do TurboCRM
+  SquaresFour,
+  CaretUpDown,
+  Headset,
+  PlusCircle,
+  ChatsTeardrop,
   Receipt,
   Tag,
   Question,

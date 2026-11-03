@@ -67,7 +67,7 @@ import { apiClient } from "@/lib/api/client";
 import { normalizePhoneBR, phoneForDisplay, samePhone } from "@/lib/channels/phone-variants";
 import { rotuloDoContato } from "@/lib/contacts/rotulo-do-contato";
 import { assumirConversaAoAbrir } from "@/lib/inbox/assumir-conversa-ao-abrir";
-import { ChatCircle, UserCircle, Users } from "@/lib/ui/icons";
+import { PlusCircle, UserCircle, Users } from "@/lib/ui/icons";
 import { useAuth, usePermission } from "@/hooks/auth/AuthProvider";
 import { useContactList } from "@/hooks/contacts/useContactList";
 import { useT } from "@/hooks/i18n/useT";
@@ -384,14 +384,13 @@ export function BotaoIniciarConversa() {
 
   return (
     <>
-      <div className="px-3 pt-3">
+      <div className="px-5 pt-4">
         <Button
           type="button"
-          variant="outline"
-          className="w-full justify-center gap-2"
+          className="h-11 w-full justify-center gap-2 rounded-full lg:h-11"
           onClick={() => setAberto(true)}
         >
-          <ChatCircle size={16} weight="regular" aria-hidden />
+          <PlusCircle size={18} weight="regular" aria-hidden />
           {t("Iniciar conversa")}
         </Button>
       </div>

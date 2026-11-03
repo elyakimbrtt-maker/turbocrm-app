@@ -16,6 +16,7 @@ import { marcaEhADoProduto } from "@/lib/branding";
 import { useMarcaDaInstalacao } from "@/lib/branding/contexto";
 import { GRUPO_NO_RODAPE, sidebarGroups } from "@/lib/navigation/registry";
 import { usePrefetchPorIntencao } from "@/hooks/navigation/prefetchPorIntencao";
+import { MenuTurbo } from "@/components/turbocrm/MenuTurbo";
 
 const CHAVE_GRUPOS_FECHADOS = "sidebar-grupos-fechados";
 
@@ -33,7 +34,7 @@ interface SidebarContentProps {
  * itens e sete `usePermission()` viviam aqui — e divergiam do hub de
  * Configurações e das abas de IA, que mantinham suas próprias listas.
  */
-export function SidebarContent({
+export function SidebarContentDeskcomm({
   collapsed,
   showCollapseControl = true,
   onNavigate,
@@ -519,6 +520,15 @@ function BotaoDeRecolher({
   );
 }
 
+/**
+ * TurboCRM: o menu da casca é o `MenuTurbo` (Figma "TurboCRM · Inbox"). O
+ * desenho original segue exportado como `SidebarContentDeskcomm`, para a fusão
+ * com as versões novas do DeskcommCRM continuar simples.
+ */
+export function SidebarContent(props: SidebarContentProps) {
+  return <MenuTurbo {...props} />;
+}
+
 export function Sidebar({ collapsed }: { collapsed: boolean }) {
   return (
     <aside
@@ -558,11 +568,15 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
         // `duration-base` em vez do `duration-200` literal: 200ms é o mesmo
         // número, mas vindo de `--duration-base`. A Lei de movimento fecha a
         // tabela de durações, e número solto é o que a faz apodrecer.
-        "sticky top-[var(--faixas-de-cima,0px)] z-30 flex h-[calc(100dvh-var(--faixas-de-cima,0px))] shrink-0 flex-col border-r bg-card transition-[width] duration-base tcrm-vidro-barra",
-        collapsed ? "w-16" : "w-60",
+        // TurboCRM: o menu flutua — um cartão de vidro arredondado com folga
+        // de 16px da borda (Figma "Navegação flutuante").
+        "sticky top-[var(--faixas-de-cima,0px)] z-30 flex h-[calc(100dvh-var(--faixas-de-cima,0px))] shrink-0 flex-col p-4 pr-0 transition-[width] duration-base",
+        collapsed ? "w-[6.5rem]" : "w-[17.75rem]",
       )}
     >
-      <SidebarContent collapsed={collapsed} />
+      <div className="tcrm-vidro-barra tcrm-menu-flutuante flex h-full min-h-0 flex-col rounded-[1.75rem] border">
+        <SidebarContent collapsed={collapsed} />
+      </div>
     </aside>
   );
 }

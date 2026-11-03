@@ -16,7 +16,9 @@ import { SeletorDeIdioma } from "@/components/shell/SeletorDeIdioma";
 import { useT } from "@/hooks/i18n/useT";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SignOut, ShieldCheck } from "@/lib/ui/icons";
+import { CaretUpDown, SignOut, ShieldCheck } from "@/lib/ui/icons";
+import { rotuloDoPapel } from "@/lib/auth/types";
+import { cn } from "@/lib/utils";
 
 function initials(name: string | null, email: string): string {
   if (name && name.trim()) {
@@ -25,27 +27,73 @@ function initials(name: string | null, email: string): string {
   return email.slice(0, 2).toUpperCase();
 }
 
-export function UserMenu() {
+/**
+ * `variante="cartao"` (TurboCRM): o cartão da conta no pé do menu lateral — nome,
+ * papel e organização, abrindo o menu para cima. Idioma e tema, que moravam na
+ * barra do topo, entram no próprio menu. `variante="topo"` é o desenho original.
+ */
+export function UserMenu({
+  variante = "topo",
+  compacto = false,
+}: {
+  variante?: "topo" | "cartao";
+  compacto?: boolean;
+} = {}) {
   const t = useT();
   const user = useUser();
-  const { signOut } = useAuth();
+  const { signOut, activeOrg } = useAuth();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const cartao = variante === "cartao";
+  const iniciais = initials(user.full_name, user.email);
 
   return (
-    <div className="flex items-center gap-2">
-      <SeletorDeIdioma />
-      <ThemeToggle />
+    <div className={cn("flex items-center gap-2", cartao && "block")}>
+      {!cartao && <SeletorDeIdioma />}
+      {!cartao && <ThemeToggle />}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="rounded-full" aria-label={`${t("Menu do usuário")}: ${initials(user.full_name, user.email)}`}>
-            <Avatar className="h-8 w-8">
-              {user.avatar_url && <AvatarImage src={user.avatar_url} alt="" />}
-              <AvatarFallback>{initials(user.full_name, user.email)}</AvatarFallback>
-            </Avatar>
-          </Button>
+          {cartao ? (
+            <button
+              type="button"
+              aria-label={`${t("Menu do usuário")}: ${iniciais}`}
+              className={cn(
+                "tcrm-cartao-conta flex w-full items-center gap-3 rounded-2xl border p-3 text-left",
+                compacto && "justify-center p-2",
+              )}
+            >
+              <Avatar className="h-9 w-9 shrink-0">
+                {user.avatar_url && <AvatarImage src={user.avatar_url} alt="" />}
+                <AvatarFallback>{iniciais}</AvatarFallback>
+              </Avatar>
+              {!compacto && (
+                <>
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-sm font-semibold">
+                      {activeOrg ? t(rotuloDoPapel(activeOrg.role)) : (user.full_name ?? user.email)}
+                    </span>
+                    <span className="truncate text-xs text-text-muted">
+                      {activeOrg?.name ?? user.email}
+                    </span>
+                  </span>
+                  <CaretUpDown size={14} aria-hidden className="shrink-0 text-text-muted" />
+                </>
+              )}
+            </button>
+          ) : (
+            <Button variant="ghost" size="icon" className="rounded-full" aria-label={`${t("Menu do usuário")}: ${iniciais}`}>
+              <Avatar className="h-8 w-8">
+                {user.avatar_url && <AvatarImage src={user.avatar_url} alt="" />}
+                <AvatarFallback>{iniciais}</AvatarFallback>
+              </Avatar>
+            </Button>
+          )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[220px]">
+        <DropdownMenuContent
+          align={cartao ? "start" : "end"}
+          side={cartao ? "top" : undefined}
+          className="min-w-[220px]"
+        >
           <DropdownMenuLabel>
             <div className="flex flex-col">
               <span className="text-sm font-medium">{user.full_name ?? user.email}</span>
@@ -53,6 +101,18 @@ export function UserMenu() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {cartao && (
+            <>
+              <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+                <span className="text-xs text-muted-foreground">{t("Idioma e tema")}</span>
+                <span className="flex items-center gap-1">
+                  <SeletorDeIdioma />
+                  <ThemeToggle />
+                </span>
+              </div>
+              <DropdownMenuSeparator />
+            </>
+          )}
           {/*
             A PORTA DO MODO ADMINISTRADOR.
 

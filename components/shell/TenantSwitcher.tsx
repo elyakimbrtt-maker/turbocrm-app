@@ -71,8 +71,10 @@ export function TenantSwitcher() {
           title={user.support ? "Saia do acompanhamento para trocar de organização" : undefined}
           data-testid="tenant-switcher"
         >
-          <Storefront size={16} weight="duotone" aria-hidden />
-          <span className="hidden max-w-[160px] truncate md:inline">
+          <span className="tcrm-botao-redondo flex h-9 w-9 items-center justify-center rounded-xl border">
+            <Storefront size={18} aria-hidden />
+          </span>
+          <span className="hidden max-w-[160px] truncate text-[0.95rem] font-semibold md:inline">
             {active?.name ?? "Selecionar org"}
           </span>
           <CaretDown size={12} aria-hidden className="hidden md:inline" />

@@ -41,7 +41,17 @@ import { EncaminharDialog } from "./EncaminharDialog";
 import { useEncaminharMensagem } from "@/hooks/inbox/useEncaminharMensagem";
 import { OpenConversationProvider } from "@/hooks/notifications/OpenConversationContext";
 // ADR-05: ícone de feature sai do mapa canônico, nunca do pacote direto.
-import { CaretLeft, ChatCircle, IdentificationCard, MagnifyingGlass, X } from "@/lib/ui/icons";
+import {
+  ArrowsClockwise,
+  CaretLeft,
+  ChatCircle,
+  ChatsTeardrop,
+  IdentificationCard,
+  Lightning,
+  MagnifyingGlass,
+  ShieldCheck,
+  X,
+} from "@/lib/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -897,7 +907,9 @@ export function InboxLayout({
     <div
       ref={gradeRef}
       className={cn(
-        "grid relative h-[calc(100dvh-var(--faixas-de-cima,0px)-3.5rem-var(--space-6)-max(var(--space-6),var(--rodape-ocupado,0px)))] w-full grid-cols-1 md:grid-cols-[300px_1fr]",
+        "grid relative h-[calc(100dvh-var(--faixas-de-cima,0px)-3.5rem-var(--space-6)-max(var(--space-6),var(--rodape-ocupado,0px))-var(--tcrm-cabecalho,0px))] w-full grid-cols-1 md:grid-cols-[300px_1fr]",
+        // TurboCRM: as três colunas num painel de vidro arredondado.
+        "tcrm-painel-inbox",
         // Recolhido (issue #3004), a terceira trilha vira o trilho estreito do
         // botão de expandir e a conversa fica com o que era da ficha. Duas
         // listas em vez de uma classe com valor em variável: o Tailwind precisa
@@ -950,6 +962,19 @@ export function InboxLayout({
           colunas.lista,
         )}
       >
+        {/* TurboCRM: título da coluna com o "atualizar" (Figma "Título da lista"). */}
+        <div className="flex items-center justify-between px-5 pt-5">
+          <h2 className="text-[0.95rem] font-semibold">{t("Conversas")}</h2>
+          <button
+            type="button"
+            onClick={() => void listQ.refetch()}
+            aria-label={t("Atualizar conversas")}
+            title={t("Atualizar conversas")}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-muted transition-colors hover:text-text"
+          >
+            <ArrowsClockwise size={17} aria-hidden className={cn(listQ.isRefetching && "animate-spin")} />
+          </button>
+        </div>
         <BotaoIniciarConversa />
         <InboxFilters value={filterValue} onChange={setFilterValue} />
         {podeAgirEmLote && (
@@ -1171,10 +1196,37 @@ export function InboxLayout({
             {t("Conversa não encontrada ou fora do seu acesso.")}
           </div>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-            <ChatCircle size={36} weight="thin" className="text-text-subtle" aria-hidden />
-            <p className="text-sm font-medium text-text-muted">{t("Selecione uma conversa")}</p>
-            <p className="text-xs text-text-muted">{t("Ou navegue com J e K")}</p>
+          // TurboCRM: estado vazio do Figma ("Conversa não selecionada").
+          <div className="flex h-full flex-col">
+            <div className="flex h-[4.5rem] shrink-0 items-center gap-2.5 border-b border-border px-6 text-sm text-text-muted">
+              <ChatCircle size={17} aria-hidden />
+              {t("Conversa")}
+            </div>
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 text-center">
+              <div aria-hidden className="tcrm-orbita relative mb-8 flex h-40 w-44 items-center justify-center">
+                <span className="absolute h-44 w-44 rounded-full border border-border" />
+                <span className="absolute h-[8.6rem] w-[8.6rem] rounded-full border border-border" />
+                <span className="absolute top-[1.9rem] left-[1.9rem] h-1.5 w-1.5 rounded-full bg-accent" />
+                <span className="tcrm-cartao-icone relative flex h-[5.5rem] w-[6.1rem] items-center justify-center rounded-3xl border">
+                  <ChatsTeardrop size={38} aria-hidden className="text-text-muted" />
+                  <span className="absolute -right-3 -bottom-3 flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white shadow-lg">
+                    <Lightning size={16} weight="fill" aria-hidden />
+                  </span>
+                </span>
+              </div>
+              <p className="text-xl font-medium">{t("Selecione uma conversa")}</p>
+              <p className="mt-3 text-sm text-text-muted">{t("Seu próximo atendimento começa aqui.")}</p>
+              <p className="mt-7 flex items-center gap-2 text-xs text-text-muted">
+                {t("Ou navegue com")}
+                <kbd className="rounded-md border border-border px-2 py-0.5">J</kbd>
+                {t("e")}
+                <kbd className="rounded-md border border-border px-2 py-0.5">K</kbd>
+              </p>
+            </div>
+            <p className="flex h-11 shrink-0 items-center justify-center gap-2 text-[0.7rem] text-text-muted">
+              <ShieldCheck size={13} aria-hidden />
+              {t("Seus dados seguros, em cada conversa.")}
+            </p>
           </div>
         )}
       </div>

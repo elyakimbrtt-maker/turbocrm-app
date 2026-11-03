@@ -4,6 +4,9 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { loadAuthUser, resolveActiveOrg } from "@/lib/auth/server";
 import { InboxLayout } from "@/components/inbox/InboxLayout";
+import { CabecalhoDaPagina } from "@/components/turbocrm/CabecalhoDaPagina";
+import { ContagemDeConversas } from "@/components/turbocrm/ContagemDeConversas";
+import { Headset } from "@/lib/ui/icons";
 import { traduzir } from "@/lib/i18n/dicionario";
 import { createClient } from "@/lib/supabase/server";
 import { lerRascunho, type AvisoDeRascunho } from "@/lib/inbox/rascunho-sugerido";
@@ -70,12 +73,25 @@ export default async function InboxPage({
       }),
     };
   }
+  // TurboCRM: cabeçalho do Figma acima das três colunas. A altura dele entra
+  // na conta da grade por `--tcrm-cabecalho` (app/turbocrm.css).
   return (
-    <InboxLayout
-      initialSelectedId={id ?? null}
-      rascunho={avisoDeRascunho}
-      painelRecolhidoInicial={painelRecolhido}
-      modulosDaLateral={modulosDaLateral}
-    />
+    <div className="tcrm-inbox">
+      <div className="hidden h-20 md:block">
+        <CabecalhoDaPagina
+          titulo="Inbox"
+          descricao="Cada conversa, uma nova oportunidade."
+          contagem={<ContagemDeConversas />}
+          secao="Atendimento"
+          IconeDaSecao={Headset}
+        />
+      </div>
+      <InboxLayout
+        initialSelectedId={id ?? null}
+        rascunho={avisoDeRascunho}
+        painelRecolhidoInicial={painelRecolhido}
+        modulosDaLateral={modulosDaLateral}
+      />
+    </div>
   );
 }
