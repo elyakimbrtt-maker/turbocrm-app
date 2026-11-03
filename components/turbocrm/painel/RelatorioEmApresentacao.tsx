@@ -16,7 +16,7 @@ import { usePainelGerente } from "@/hooks/turbocrm/usePainelGerente";
 import { apiClient } from "@/lib/api/client";
 import { ApiError } from "@/lib/api/types";
 import { formatValorDoNegocio } from "@/lib/money";
-import type { Periodo } from "@/lib/turbocrm/periodos";
+import type { Intervalo, Periodo } from "@/lib/turbocrm/periodos";
 import { ArrowLeft, FilePdf, Lightning } from "@/lib/ui/icons";
 
 const dinheiro = (c: number | null | undefined) => formatValorDoNegocio(Number(c ?? 0), "BRL", { semCentavos: true });
@@ -25,19 +25,38 @@ function Slide({ children, escuro = false }: { children: React.ReactNode; escuro
   return <section className={escuro ? "tcrm-slide tcrm-slide-escuro" : "tcrm-slide"}>{children}</section>;
 }
 
-export function RelatorioEmApresentacao({ periodo, nomeDaLoja }: { periodo: Periodo; nomeDaLoja: string }) {
+export function RelatorioEmApresentacao({
+  periodo,
+  intervalo,
+  nomeDaLoja,
+}: {
+  periodo: Periodo;
+  intervalo: Intervalo | null;
+  nomeDaLoja: string;
+}) {
   const t = useT();
-  const { data, isLoading } = usePainelGerente(periodo);
+  const { data, isLoading } = usePainelGerente(periodo, intervalo);
   const [resumo, setResumo] = useState<string | null>(null);
   const [gerando, setGerando] = useState(false);
 
-  const nomeDoPeriodo = periodo === "hoje" ? t("Hoje") : periodo === "semana" ? t("Esta semana") : t("Este mês");
+  const dataBR = (iso: string) => iso.split("-").reverse().join("/");
+  const nomeDoPeriodo =
+    periodo === "hoje"
+      ? t("Hoje")
+      : periodo === "semana"
+        ? t("Esta semana")
+        : periodo === "personalizado" && intervalo
+          ? `${dataBR(intervalo.de)} ${t("a")} ${dataBR(intervalo.ate)}`
+          : t("Este mês");
   const hoje = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
 
   async function gerarResumo() {
     setGerando(true);
     try {
-      const r = await apiClient.post<{ data: { texto: string } }>("/api/v1/painel-gerente/resumo-ia", { periodo });
+      const r = await apiClient.post<{ data: { texto: string } }>("/api/v1/painel-gerente/resumo-ia", {
+        periodo,
+        ...(periodo === "personalizado" && intervalo ? intervalo : {}),
+      });
       setResumo(r.data.texto);
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : t("Não consegui gerar o resumo agora."));

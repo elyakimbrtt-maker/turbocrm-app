@@ -7,7 +7,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { FUSO_PADRAO, fusoValido } from "@/lib/tempo/fusos";
 import { pessoasPorId, type Pessoa } from "@/lib/turbocrm/feed";
-import { janelas, type Janelas, type Periodo } from "@/lib/turbocrm/periodos";
+import type { Janelas, Periodo } from "@/lib/turbocrm/periodos";
 
 export interface NumerosDoPainel {
   periodo: Periodo;
@@ -57,8 +57,8 @@ export async function numerosDoPainel(
   orgId: string,
   periodo: Periodo,
   fuso: string,
+  j: Janelas,
 ): Promise<{ ok: true; numeros: NumerosDoPainel; janelas: Janelas } | { ok: false }> {
-  const j = janelas(periodo, fuso);
   const { data, error } = await createAdminClient().rpc("fn_turbocrm_painel_gerente", {
     p_org: orgId,
     p_de: j.de.toISOString(),

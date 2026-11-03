@@ -17,7 +17,7 @@ import { requireRole } from "@/lib/auth/require-role";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { FUSO_PADRAO, fusoValido } from "@/lib/tempo/fusos";
 import { pessoasPorId } from "@/lib/turbocrm/feed";
-import { janelas, type Periodo } from "@/lib/turbocrm/periodos";
+import { periodoDoPedido } from "@/lib/turbocrm/periodos";
 import { planilha, reais } from "@/lib/turbocrm/planilha";
 
 export const dynamic = "force-dynamic";
@@ -57,10 +57,10 @@ export async function GET(req: NextRequest): Promise<Response> {
   if (!indicador || !INDICADORES.includes(indicador)) {
     return fail("validation_failed", "Indicador desconhecido.", 422, { requestId });
   }
-  const pedido = url.searchParams.get("periodo");
-  const periodo: Periodo = pedido === "hoje" || pedido === "semana" ? pedido : "mes";
   const fuso = authz.org.timezone && fusoValido(authz.org.timezone) ? authz.org.timezone : FUSO_PADRAO;
-  const j = janelas(periodo, fuso);
+  const pp = periodoDoPedido(url.searchParams, fuso);
+  if (!pp) return fail("validation_failed", "Escolha um intervalo válido, de até um ano.", 422, { requestId });
+  const { periodo, janelas: j } = pp;
 
   const admin = createAdminClient();
   const { data: membros } = await admin
@@ -228,7 +228,9 @@ export async function GET(req: NextRequest): Promise<Response> {
     requestId,
   });
 
-  const arquivo = `${NOME_DO_ARQUIVO[indicador]}-${periodo}-${j.de.toISOString().slice(0, 10)}.csv`;
+  const dia = (d: Date) => d.toLocaleDateString("sv-SE", { timeZone: fuso });
+  const fimInclusivo = new Date(j.ate.getTime() - 1);
+  const arquivo = `${NOME_DO_ARQUIVO[indicador]}-${dia(j.de)}-a-${dia(fimInclusivo)}.csv`;
   return new Response(planilha(cabecalho, linhas), {
     status: 200,
     headers: {

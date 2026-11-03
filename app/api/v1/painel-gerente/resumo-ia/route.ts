@@ -16,11 +16,18 @@ import { requireRole } from "@/lib/auth/require-role";
 import { requireSupportWrite } from "@/lib/impersonate/support";
 import { logger } from "@/lib/logger";
 import { fusoDaEmpresa, numerosDoPainel } from "@/lib/turbocrm/painel";
+import { periodoDoPedido } from "@/lib/turbocrm/periodos";
 
 export const dynamic = "force-dynamic";
 
 const MODELO = "gemini-2.5-flash";
-const Corpo = z.object({ periodo: z.enum(["hoje", "semana", "mes"]) }).strict();
+const Corpo = z
+  .object({
+    periodo: z.enum(["hoje", "semana", "mes", "personalizado"]),
+    de: z.string().optional(),
+    ate: z.string().optional(),
+  })
+  .strict();
 
 const reais = (c: number | null | undefined) =>
   ((c ?? 0) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -46,12 +53,22 @@ export async function POST(req: NextRequest): Promise<Response> {
   const parsed = Corpo.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return fail("validation_failed", "Período inválido.", 422, { requestId });
   const { periodo } = parsed.data;
+  const fuso = fusoDaEmpresa(authz.org.timezone);
+  const p = periodoDoPedido(parsed.data, fuso);
+  if (!p) return fail("validation_failed", "Escolha um intervalo válido, de até um ano.", 422, { requestId });
 
-  const r = await numerosDoPainel(authz.org.orgId, periodo, fusoDaEmpresa(authz.org.timezone));
+  const r = await numerosDoPainel(authz.org.orgId, periodo, fuso, p.janelas);
   if (!r.ok) return fail("internal_error", "Não consegui ler os números do painel.", 500, { requestId });
   const n = r.numeros;
 
-  const nomeDoPeriodo = periodo === "hoje" ? "hoje" : periodo === "semana" ? "nesta semana" : "neste mês";
+  const nomeDoPeriodo =
+    periodo === "hoje"
+      ? "hoje"
+      : periodo === "semana"
+        ? "nesta semana"
+        : periodo === "personalizado" && p.intervalo
+          ? `de ${p.intervalo.de.split("-").reverse().join("/")} a ${p.intervalo.ate.split("-").reverse().join("/")}`
+          : "neste mês";
   const linhas = n.vendedores.map((v) => {
     const primeiro = v.pessoa.nome.trim().split(/\s+/)[0] || "Atendente";
     const fechados = Number(v.vendas ?? 0) + Number(v.perdidos ?? 0);

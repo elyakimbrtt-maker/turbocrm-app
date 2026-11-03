@@ -15,7 +15,7 @@ import { useT } from "@/hooks/i18n/useT";
 import { useContagem } from "@/hooks/turbocrm/useContagem";
 import { usePainelGerente, type IndicadoresDoVendedor } from "@/hooks/turbocrm/usePainelGerente";
 import { formatValorDoNegocio } from "@/lib/money";
-import type { Periodo } from "@/lib/turbocrm/periodos";
+import { consultaDoPeriodo, type Intervalo, type Periodo } from "@/lib/turbocrm/periodos";
 import {
   Briefcase,
   ChatCircleDots,
@@ -65,19 +65,20 @@ function Progresso({ feito, alvo, fino = false }: { feito: number; alvo: number 
  */
 function BotaoBaixar({
   indicador,
-  periodo,
+  consulta,
   rotulo,
   comTexto = false,
 }: {
   indicador: string;
-  periodo: Periodo;
+  /** `periodo=…` (e `de`/`ate` no personalizado), igual à da tela. */
+  consulta: string;
   rotulo: string;
   comTexto?: boolean;
 }) {
   const t = useT();
   return (
     <a
-      href={`/api/v1/painel-gerente/exportar?indicador=${indicador}&periodo=${periodo}`}
+      href={`/api/v1/painel-gerente/exportar?indicador=${indicador}&${consulta}`}
       download
       title={`${t("Baixar planilha")}: ${rotulo}`}
       aria-label={`${t("Baixar planilha")}: ${rotulo}`}
@@ -240,13 +241,31 @@ const PERIODOS: Array<{ id: Periodo; rotulo: string }> = [
   { id: "hoje", rotulo: "Hoje" },
   { id: "semana", rotulo: "Semana" },
   { id: "mes", rotulo: "Mês" },
+  { id: "personalizado", rotulo: "Personalizado" },
 ];
+
+/** `AAAA-MM-DD` de hoje no relógio de quem está na tela (é o que o calendário mostra). */
+function diaLocal(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+const dataBR = (iso: string) => iso.split("-").reverse().join("/");
 
 export function PainelDoGerente() {
   const t = useT();
   const [periodo, setPeriodo] = useState<Periodo>("mes");
   const [editando, setEditando] = useState(false);
-  const { data, isLoading, isError } = usePainelGerente(periodo);
+  // O intervalo do calendário começa nos últimos 30 dias; só vale depois de
+  // "Aplicar", para o painel não recarregar a cada dia clicado.
+  const [rascunho, setRascunho] = useState<Intervalo>(() => {
+    const hoje = new Date();
+    const antes = new Date(hoje);
+    antes.setDate(hoje.getDate() - 29);
+    return { de: diaLocal(antes), ate: diaLocal(hoje) };
+  });
+  const [intervalo, setIntervalo] = useState<Intervalo>(rascunho);
+  const rascunhoValido = Boolean(rascunho.de && rascunho.ate && rascunho.de <= rascunho.ate);
+  const consulta = consultaDoPeriodo(periodo, intervalo);
+  const { data, isLoading, isError } = usePainelGerente(periodo, intervalo);
 
   const soma = useMemo(() => {
     const vs = data?.vendedores ?? [];
@@ -271,7 +290,14 @@ export function PainelDoGerente() {
     return <p className="rounded-2xl border border-destructive/40 p-4 text-sm text-destructive">{t("Não consegui carregar o painel. Recarregue a página.")}</p>;
   }
 
-  const rotuloPeriodo = periodo === "hoje" ? t("hoje") : periodo === "semana" ? t("nesta semana") : t("no mês");
+  const rotuloPeriodo =
+    periodo === "hoje"
+      ? t("hoje")
+      : periodo === "semana"
+        ? t("nesta semana")
+        : periodo === "personalizado"
+          ? `${t("de")} ${dataBR(intervalo.de)} ${t("a")} ${dataBR(intervalo.ate)}`
+          : t("no mês");
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
@@ -292,7 +318,7 @@ export function PainelDoGerente() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <a
-            href={`/app/painel-gerente/relatorio?periodo=${periodo}`}
+            href={`/app/painel-gerente/relatorio?${consulta}`}
             className="tcrm-botao-baixar flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium"
           >
             <PresentationChart size={16} aria-hidden /> {t("Relatório em apresentação")}
@@ -302,6 +328,44 @@ export function PainelDoGerente() {
           </Button>
         </div>
       </div>
+
+      {periodo === "personalizado" && (
+        <form
+          className="tcrm-cartao-inicio tcrm-surgir-suave flex flex-wrap items-end gap-3 rounded-[1.5rem] border p-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (rascunhoValido) setIntervalo(rascunho);
+          }}
+        >
+          <label className="flex flex-col gap-1 text-xs font-medium text-text-muted">
+            {t("De")}
+            <input
+              type="date"
+              value={rascunho.de}
+              max={rascunho.ate || undefined}
+              onChange={(e) => setRascunho((r) => ({ ...r, de: e.target.value }))}
+              className="tcrm-campo-publicar h-10 rounded-xl border px-3 text-sm text-text outline-hidden"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-xs font-medium text-text-muted">
+            {t("Até")}
+            <input
+              type="date"
+              value={rascunho.ate}
+              min={rascunho.de || undefined}
+              max={diaLocal(new Date())}
+              onChange={(e) => setRascunho((r) => ({ ...r, ate: e.target.value }))}
+              className="tcrm-campo-publicar h-10 rounded-xl border px-3 text-sm text-text outline-hidden"
+            />
+          </label>
+          <Button type="submit" className="h-10 rounded-full px-5" disabled={!rascunhoValido}>
+            {t("Aplicar")}
+          </Button>
+          <p className="text-xs text-text-muted">
+            {t("Follow-ups seguem sendo os de hoje e as metas, as do mês atual. Intervalo de até um ano.")}
+          </p>
+        </form>
+      )}
 
       {isLoading || !data ? (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -318,8 +382,8 @@ export function PainelDoGerente() {
                 <span className="flex items-center gap-2 text-sm font-medium text-text-muted">
                   <Trophy size={16} weight="fill" className="text-[#f5a524]" aria-hidden /> {t("Vendas da loja no mês")}
                   <span className="ml-auto flex gap-1.5">
-                    <BotaoBaixar indicador="vendas" periodo={periodo} rotulo={`${t("Vendas")} · ${rotuloPeriodo}`} comTexto />
-                    <BotaoBaixar indicador="perdas" periodo={periodo} rotulo={`${t("Negócios perdidos")} · ${rotuloPeriodo}`} />
+                    <BotaoBaixar indicador="vendas" consulta={consulta} rotulo={`${t("Vendas")} · ${rotuloPeriodo}`} comTexto />
+                    <BotaoBaixar indicador="perdas" consulta={consulta} rotulo={`${t("Negócios perdidos")} · ${rotuloPeriodo}`} />
                   </span>
                 </span>
                 <span className="text-4xl font-black tracking-tight tabular-nums">
@@ -349,12 +413,12 @@ export function PainelDoGerente() {
           </section>
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Indicador icone={ChatCircleDots} rotulo={t("Atendimentos")} valor={soma.atendimentos} detalhe={rotuloPeriodo} indice={1} baixar={<BotaoBaixar indicador="vendedores" periodo={periodo} rotulo={t("Atendimentos por vendedor")} />} />
-            <Indicador icone={Users} rotulo={t("Leads recebidos")} valor={soma.leads} detalhe={rotuloPeriodo} indice={2} baixar={<BotaoBaixar indicador="leads" periodo={periodo} rotulo={t("Leads recebidos")} />} />
+            <Indicador icone={ChatCircleDots} rotulo={t("Atendimentos")} valor={soma.atendimentos} detalhe={rotuloPeriodo} indice={1} baixar={<BotaoBaixar indicador="vendedores" consulta={consulta} rotulo={t("Atendimentos por vendedor")} />} />
+            <Indicador icone={Users} rotulo={t("Leads recebidos")} valor={soma.leads} detalhe={rotuloPeriodo} indice={2} baixar={<BotaoBaixar indicador="leads" consulta={consulta} rotulo={t("Leads recebidos")} />} />
             <Indicador
               icone={ClockCountdown}
               rotulo={t("Follow-ups de hoje")}
-              baixar={<BotaoBaixar indicador="followups" periodo={periodo} rotulo={t("Follow-ups de hoje e atrasados")} />}
+              baixar={<BotaoBaixar indicador="followups" consulta={consulta} rotulo={t("Follow-ups de hoje e atrasados")} />}
               valor={soma.hoje}
               alerta={soma.atrasados > 0}
               detalhe={soma.atrasados > 0 ? `${soma.atrasados} ${t("atrasados")}` : t("nada atrasado")}
@@ -363,7 +427,7 @@ export function PainelDoGerente() {
             <Indicador
               icone={Briefcase}
               rotulo={t("Negócios em aberto")}
-              baixar={<BotaoBaixar indicador="abertos" periodo={periodo} rotulo={t("Negócios em aberto")} />}
+              baixar={<BotaoBaixar indicador="abertos" consulta={consulta} rotulo={t("Negócios em aberto")} />}
               valor={soma.abertos}
               detalhe={`${dinheiro(soma.valorAberto)} ${t("em negociação")}`}
               indice={4}
@@ -388,7 +452,7 @@ export function PainelDoGerente() {
                 <span className="text-xs font-normal text-text-muted">· {rotuloPeriodo}</span>
               </h2>
               <span className="ml-auto">
-                <BotaoBaixar indicador="vendedores" periodo={periodo} rotulo={t("Resumo por vendedor")} comTexto />
+                <BotaoBaixar indicador="vendedores" consulta={consulta} rotulo={t("Resumo por vendedor")} comTexto />
               </span>
             </div>
             {vendedores.length === 0 && (

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { showApiError } from "@/components/feedback/ApiErrorToast";
 import { apiClient } from "@/lib/api/client";
-import type { Periodo } from "@/lib/turbocrm/periodos";
+import { consultaDoPeriodo, type Intervalo, type Periodo } from "@/lib/turbocrm/periodos";
 
 import type { PessoaDoFeed } from "./useFeed";
 
@@ -46,10 +46,11 @@ export interface PainelDoGerente {
   vendedores: IndicadoresDoVendedor[];
 }
 
-export function usePainelGerente(periodo: Periodo) {
+export function usePainelGerente(periodo: Periodo, intervalo?: Intervalo | null) {
+  const consulta = consultaDoPeriodo(periodo, intervalo);
   return useQuery({
-    queryKey: ["turbocrm", "painel-gerente", periodo],
-    queryFn: async () => (await apiClient.get<{ data: PainelDoGerente }>(`/api/v1/painel-gerente?periodo=${periodo}`)).data,
+    queryKey: ["turbocrm", "painel-gerente", consulta],
+    queryFn: async () => (await apiClient.get<{ data: PainelDoGerente }>(`/api/v1/painel-gerente?${consulta}`)).data,
     refetchInterval: 60_000,
     placeholderData: (anterior) => anterior,
   });
