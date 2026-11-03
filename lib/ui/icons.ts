@@ -131,6 +131,12 @@ export {
   Medal,
   Fire,
   Confetti,
+  // painel do gerente
+  Target,
+  ChatCircleDots,
+  Briefcase,
+  CurrencyCircleDollar,
+  TrendUp,
   Receipt,
   Tag,
   Question,

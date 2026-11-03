@@ -551,3 +551,95 @@ html[data-theme="dark"][data-fundo="onda"] .tcrm-casca::before {
     animation: none;
   }
 }
+
+/* ── Painel do gerente ─────────────────────────────────────────────────── */
+.tcrm-elevar {
+  transition: translate 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease-out;
+}
+.tcrm-elevar:hover {
+  translate: 0 -4px;
+  box-shadow: 0 22px 40px -24px rgb(0 0 0 / 0.75);
+}
+.tcrm-icone-indicador {
+  color: var(--color-accent);
+  background-color: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+.tcrm-indicador-alerta {
+  border-color: rgb(245 165 36 / 0.5);
+}
+.tcrm-indicador-alerta .tcrm-icone-indicador {
+  color: #f5a524;
+  background-color: rgb(245 165 36 / 0.14);
+}
+.tcrm-faixa-loja {
+  background-image:
+    radial-gradient(80% 140% at 0% 0%, color-mix(in srgb, var(--color-accent) 22%, transparent), transparent 60%),
+    radial-gradient(70% 120% at 100% 100%, rgb(34 197 94 / 0.12), transparent 60%);
+}
+.tcrm-trilho {
+  background-color: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+.tcrm-barra-progresso {
+  transform-origin: left;
+  animation: tcrm-encher 900ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  box-shadow: 0 0 12px -2px currentColor;
+}
+@keyframes tcrm-encher {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.tcrm-coluna-grafico {
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 85%, white), var(--color-accent));
+  transform-origin: bottom;
+  animation: tcrm-subir 600ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 18ms + 200ms);
+}
+.tcrm-coluna-vazia {
+  background-image: none;
+  background-color: color-mix(in srgb, var(--color-text) 10%, transparent);
+}
+.tcrm-coluna-hoje {
+  outline: 2px solid color-mix(in srgb, var(--color-text) 40%, transparent);
+  outline-offset: 2px;
+}
+.tcrm-mini-numero {
+  background-color: color-mix(in srgb, var(--color-text) 4%, transparent);
+}
+.tcrm-selo-hoje {
+  color: #f5a524;
+  background-color: rgb(245 165 36 / 0.14);
+}
+.tcrm-selo-atrasado {
+  color: #fff;
+  background-color: var(--color-accent);
+}
+.tcrm-aviso-painel {
+  color: #f5a524;
+  border-color: rgb(245 165 36 / 0.35);
+  background-color: rgb(245 165 36 / 0.08);
+}
+.tcrm-abas {
+  border-color: color-mix(in srgb, var(--color-text) 10%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+}
+.tcrm-aba {
+  color: var(--color-text-muted);
+  transition: background-color 160ms ease-out, color 160ms ease-out;
+}
+.tcrm-aba:hover {
+  color: var(--color-text);
+}
+.tcrm-aba-ativa {
+  color: #fff;
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-accent) 80%, white), var(--color-accent));
+  box-shadow: 0 6px 16px -8px var(--color-accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tcrm-barra-progresso,
+  .tcrm-coluna-grafico {
+    animation: none;
+  }
+  .tcrm-elevar:hover {
+    translate: none;
+  }
+}

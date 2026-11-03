@@ -1420,6 +1420,8 @@ export const AUDIT_ACTIONS = [
   "feed.post_deleted",
   "feed.post_pinned",
   "feed.ranking_toggled",
+  // TurboCRM: meta mensal de um vendedor ou da loja, no painel do gerente.
+  "painel.meta_definida",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

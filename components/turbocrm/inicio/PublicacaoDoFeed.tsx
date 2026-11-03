@@ -171,7 +171,7 @@ function Comentarios({ postId }: { postId: string }) {
           maxLength={2000}
           placeholder={t("Escreva um comentário…")}
           aria-label={t("Comentário")}
-          className="tcrm-campo-publicar h-10 min-w-0 flex-1 rounded-full border px-4 text-sm outline-none"
+          className="tcrm-campo-publicar h-10 min-w-0 flex-1 rounded-full border px-4 text-sm outline-hidden"
         />
         <button
           type="button"

@@ -24,6 +24,7 @@ import { useT } from "@/hooks/i18n/useT";
 import { usePrefetchPorIntencao } from "@/hooks/navigation/prefetchPorIntencao";
 import { marcaEhADoProduto } from "@/lib/branding";
 import { useMarcaDaInstalacao } from "@/lib/branding/contexto";
+import { ROLE_RANK, type Role } from "@/lib/auth/types";
 import { destinosDaInterface } from "@/lib/navigation/interface";
 import { sidebarGroups } from "@/lib/navigation/registry";
 import {
@@ -41,6 +42,7 @@ import {
   Lightning,
   PuzzlePiece,
   SquaresFour,
+  Target,
   UsersThree,
 } from "@/lib/ui/icons";
 import { cn } from "@/lib/utils";
@@ -55,6 +57,8 @@ interface ItemTurbo {
   saude?: boolean;
   /** Aparece para todo mundo, sem depender da interface da organização. */
   sempre?: boolean;
+  /** Só para gestor (`manager`+), também sem depender da interface. */
+  gestor?: boolean;
 }
 
 interface GrupoTurbo {
@@ -83,6 +87,7 @@ const GRUPOS_TURBO: GrupoTurbo[] = [
     id: "comercial",
     rotulo: "Comercial",
     itens: [
+      { href: "/app/painel-gerente", rotulo: "Painel do gerente", icone: Target, gestor: true },
       { href: "/app/metrics", rotulo: "Dashboard", icone: SquaresFour },
       { href: "/app/kanban", rotulo: "Funil de vendas", icone: Funnel },
       { href: "/app/agenda", rotulo: "Agenda", icone: CalendarBlank },
@@ -129,6 +134,7 @@ export function MenuTurbo({
 
   const plataforma = user.is_platform_admin && !user.support;
   const papel = activeOrg?.role ?? null;
+  const eGestor = plataforma || (papel ? ROLE_RANK[papel as Role] >= ROLE_RANK.manager : false);
   const modulos = activeOrg?.modulos_ligados ?? [];
   const capacidades = activeOrg?.capacidades_ligadas ?? [];
 
@@ -150,7 +156,7 @@ export function MenuTurbo({
 
   const grupos = GRUPOS_TURBO.map((g) => ({
     ...g,
-    itens: g.itens.filter((i) => i.sempre || visiveis.has(i.href)),
+    itens: g.itens.filter((i) => (i.gestor ? eGestor : i.sempre || visiveis.has(i.href))),
   })).filter((g) => g.itens.length > 0);
 
   // "Mais": tudo o que o menu original mostraria (destinos e hubs "Ver tudo"),

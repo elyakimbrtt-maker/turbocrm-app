@@ -31,6 +31,8 @@ const BASE = path.join(RAIZ, "app", "app");
  * e quem revisar o PR a lê.
  */
 const NAV_ALLOWLIST: Record<string, string> = {
+  "/app/painel-gerente":
+    "TurboCRM: o painel do gerente tem porta própria no grupo Comercial do MenuTurbo (só gestor), fora do catálogo",
   "/app/inicio":
     "TurboCRM: a página Início (feed + ranking) tem porta própria no topo do MenuTurbo, fora do catálogo",
   "/app": "redirect para /app/inbox — não é tela, é o ponto de entrada",

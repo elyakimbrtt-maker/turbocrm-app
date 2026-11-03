@@ -8,11 +8,10 @@
  * aparecer — o mesmo gesto do painel de referência. Gestor liga e desliga o
  * ranking para a empresa toda pelo interruptor do cabeçalho.
  */
-import { useEffect, useRef, useState } from "react";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { useT } from "@/hooks/i18n/useT";
+import { useContagem } from "@/hooks/turbocrm/useContagem";
 import { useLigarRanking, useRanking, type LinhaDoRanking } from "@/hooks/turbocrm/useFeed";
 import { formatValorDoNegocio } from "@/lib/money";
 import { Crown, Trophy } from "@/lib/ui/icons";
@@ -21,29 +20,6 @@ import { cn } from "@/lib/utils";
 function iniciais(nome: string): string {
   const partes = nome.trim().split(/\s+/);
   return ((partes[0]?.[0] ?? "") + (partes.length > 1 ? (partes.at(-1)?.[0] ?? "") : "")).toUpperCase() || "?";
-}
-
-/** Conta de 0 até o valor em ~900 ms; quem pediu menos movimento vê o número direto. */
-function useContagem(alvo: number): number {
-  const [valor, setValor] = useState(0);
-  const inicio = useRef<number | null>(null);
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      setValor(alvo);
-      return;
-    }
-    let quadro = 0;
-    inicio.current = null;
-    const passo = (agora: number) => {
-      inicio.current ??= agora;
-      const t = Math.min(1, (agora - inicio.current) / 900);
-      setValor(Math.round(alvo * (1 - Math.pow(1 - t, 3))));
-      if (t < 1) quadro = requestAnimationFrame(passo);
-    };
-    quadro = requestAnimationFrame(passo);
-    return () => cancelAnimationFrame(quadro);
-  }, [alvo]);
-  return valor;
 }
 
 function Numero({ alvo }: { alvo: number }) {

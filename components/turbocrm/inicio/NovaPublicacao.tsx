@@ -75,7 +75,7 @@ export function NovaPublicacao() {
           rows={texto ? 3 : 2}
           placeholder={t("Compartilhe uma novidade, uma meta batida, um recado para a equipe…")}
           aria-label={t("Texto da publicação")}
-          className="tcrm-campo-publicar min-h-12 w-full resize-none rounded-2xl border px-4 py-3 text-sm outline-none transition-[height]"
+          className="tcrm-campo-publicar min-h-12 w-full resize-none rounded-2xl border px-4 py-3 text-sm outline-hidden transition-[height]"
         />
       </div>
 
