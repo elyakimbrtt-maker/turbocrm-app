@@ -42,6 +42,8 @@ export interface EtapaEditavel extends EtapaDoMapa {
    * validação de 1 a 8760, em `validarJanelaDeEsfriamento`.
    */
   expected_duration_hours?: number | null;
+  /** TurboCRM: cor da etapa no quadro (`#rrggbb`), `null` = neutra. */
+  color?: string | null;
   slug: string;
   position: number;
   is_archived: boolean;

@@ -50,6 +50,8 @@ export interface PatchDeEtapa {
    * inteiro a rota responde 422 — a coluna é `numeric` sem CHECK.
    */
   expected_duration_hours?: number | null;
+  /** TurboCRM: cor da etapa no quadro (`#rrggbb`); `null` = neutra. */
+  color?: string | null;
 }
 
 function useReler(pipelineId: string) {

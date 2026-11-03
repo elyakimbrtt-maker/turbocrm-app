@@ -8,6 +8,7 @@ import type { Stage } from "@/lib/kanban/types";
 import { buildCardInput } from "@/lib/kanban/card-state";
 import { intervaloDaColuna } from "@/lib/kanban/selecao";
 import { formatSomaPorMoeda, formatValorDoNegocio, MOEDA_PADRAO, somaPorMoeda } from "@/lib/money";
+import { corDaEtapa } from "@/lib/turbocrm/cores-das-etapas";
 import { KanbanCard, type GestoDeSelecao } from "./KanbanCard";
 
 interface StageColumnProps {
@@ -144,9 +145,11 @@ export function StageColumn({
     ancora.current = null;
     onSelectMany?.(idsVisiveis, !todosSelecionados);
   };
-  const accentStyle: CSSProperties | undefined = stage.color
-    ? { backgroundColor: stage.color }
-    : undefined;
+  // TurboCRM: a cor da etapa tinge a coluna inteira (véu, borda, contador e a
+  // barra de cada card) — o vendedor reconhece a etapa antes de ler o nome.
+  const cor = corDaEtapa(stage);
+  const accentStyle: CSSProperties | undefined = cor ? { backgroundColor: cor } : undefined;
+  const corDaColuna = { "--cor-etapa": cor ?? "var(--color-text-muted)" } as CSSProperties;
 
   return (
     <div
@@ -165,7 +168,8 @@ export function StageColumn({
         coluna de etapa não vira painel. De `md` para cima volta o `w-80` de
         sempre, onde a graça é justamente ver várias etapas ao mesmo tempo.
       */
-      className="bg-surface-elevated/40 flex min-h-full w-[85vw] max-w-80 shrink-0 snap-center flex-col rounded-lg border border-border md:w-80"
+      className="tcrm-coluna flex min-h-full w-[85vw] max-w-80 shrink-0 snap-center flex-col rounded-[1.5rem] border md:w-80"
+      style={corDaColuna}
       data-etapa-do-quadro={stage.id}
     >
       {/* Cabeçalho e total PRESOS no alto do quadro enquanto os cards rolam: com
@@ -180,11 +184,11 @@ export function StageColumn({
           lados), o contorno de cima cobre exatamente a borda da coluna e viaja
           junto com o cabeçalho preso. */}
       <div
-        className="sticky top-0 z-10 -mx-px -mt-px rounded-t-lg border-x border-t border-border bg-background"
+        className="tcrm-cabecalho-coluna sticky top-0 z-10 -mx-px -mt-px rounded-t-[1.5rem] border-x border-t"
         data-cabecalho-da-etapa
       >
-        <div className="bg-surface-elevated/40 rounded-t-lg">
-          <div className="group/etapa flex items-center gap-2 border-b border-border px-3 py-2.5">
+        <div className="rounded-t-[1.5rem]">
+          <div className="group/etapa flex items-center gap-2 px-4 pt-3.5 pb-2.5">
             {/* "Selecionar a etapa inteira" é o gesto que faz a ação em lote valer a
             pena: sem ele, mover trinta cards deixa de ser trinta arrastes e vira
             trinta cliques com modificador. Fica no cabeçalho porque é ali que a
@@ -221,7 +225,7 @@ export function StageColumn({
               />
             )}
             <span
-              className={cn("h-2 w-2 rounded-full", !stage.color && "bg-text-muted/40")}
+              className={cn("tcrm-ponto-etapa h-2.5 w-2.5 rounded-full", !cor && "bg-text-muted/40")}
               style={accentStyle}
               aria-hidden
             />
@@ -238,13 +242,13 @@ export function StageColumn({
             ) : (
               <h2 className="flex-1 truncate text-sm font-semibold text-text">{stage.name}</h2>
             )}
-            <span className="rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-text-muted tabular-nums">
+            <span className="tcrm-contador-etapa rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums">
               {selecionadosAqui > 0 ? `${selecionadosAqui}/${leads.length}` : leads.length}
             </span>
           </div>
 
           {temTotal && (
-            <div className="border-b border-border px-3 py-1.5 text-[11px] text-text-muted tabular-nums">
+            <div className="px-4 pb-2.5 text-[11px] text-text-muted tabular-nums">
               {formatSomaPorMoeda(totais, formatValorDoNegocio, { primeira })}
               {ponderados !== null && (
                 <span className="ml-2">
@@ -263,8 +267,8 @@ export function StageColumn({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={cn(
-              "flex flex-1 flex-col gap-2 p-2 transition-colors",
-              snapshot.isDraggingOver && "bg-accent/5",
+              "tcrm-area-dos-cards flex flex-1 flex-col gap-2.5 rounded-b-[1.5rem] p-2.5 transition-colors",
+              snapshot.isDraggingOver && "tcrm-area-recebendo",
             )}
           >
             {leads.map((lead, idx) => (

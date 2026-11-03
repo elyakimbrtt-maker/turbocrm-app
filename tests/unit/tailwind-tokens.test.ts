@@ -694,16 +694,17 @@ describe("Tailwind 4 — `bg-surface-*` sem token é classe muda", () => {
       "components/kanban/NextActionSlot.tsx", // hover de "Ignorar"
       "components/kanban/ReactivationSlot.tsx", // hover de "Encerrar"
       "components/kanban/KanbanBoard.tsx", // esqueleto do quadro
-      "components/kanban/StageColumn.tsx", // coluna (2: corpo e cabeçalho)
+      // TurboCRM: a coluna saiu da lista — ela pinta com a cor da etapa
+      // (`.tcrm-coluna` em app/turbocrm.css), não com `bg-surface-*`.
     ];
     const achadas = superficies(SITES.map((p) => path.join(RAIZ, p)));
 
-    // `StageColumn.tsx` contribui com dois; o piso é 6, e não igualdade, para
-    // que uma coluna nova legítima não reprove por ser a sétima.
+    // O piso era 6 com os dois da coluna; no TurboCRM a coluna não usa mais
+    // `bg-surface-*`, então sobram os quatro de cima.
     expect(
       achadas.length,
-      `esperava ao menos 6 usos de bg-surface-* no quadro do funil, achei ${achadas.length}`,
-    ).toBeGreaterThanOrEqual(6);
+      `esperava ao menos 4 usos de bg-surface-* no quadro do funil, achei ${achadas.length}`,
+    ).toBeGreaterThanOrEqual(4);
 
     expect(
       achadas.filter(({ nome }) => !resolve(nome)).map(({ onde, nome }) => `${onde}  bg-${nome}`),

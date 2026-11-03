@@ -1,4 +1,5 @@
 "use client";
+import { celebrarVenda } from "@/lib/turbocrm/confete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { liberarEcoLocal, marcarEcoLocal } from "@/lib/kanban/local-echo";
@@ -91,7 +92,10 @@ export function useMoveCard(pipelineId: string, opcoes: OpcoesDeMove = {}) {
       }
       return { snapshot };
     },
-    onSuccess: (res, args) => {
+    onSuccess: (res, args, ctx) => {
+      // TurboCRM: venda fechada agora (não a que já estava ganha) é festa.
+      const antes = ctx?.snapshot?.leads.find((l) => l.id === args.leadId);
+      if (res.data?.status === "won" && antes?.status !== "won") celebrarVenda();
       // A resposta é o lead como o servidor o deixou, com o `updated_at` final.
       // Sem gravá-la aqui, o cache seguia com o valor de antes até o refetch do
       // `onSettled` chegar, e arrastar o mesmo card de novo nesse intervalo

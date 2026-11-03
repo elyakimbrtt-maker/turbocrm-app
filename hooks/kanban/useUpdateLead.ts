@@ -1,4 +1,5 @@
 "use client";
+import { celebrarVenda } from "@/lib/turbocrm/confete";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api/client";
 import { liberarEcoLocal, marcarEcoLocal } from "@/lib/kanban/local-echo";
@@ -54,6 +55,7 @@ export function useWinLead(pipelineId: string) {
     },
     onSuccess: (res, { leadId }) => {
       gravaLeadNoQuadro(qc, queryKey, leadId, res?.data);
+      celebrarVenda();
     },
     onError: showApiError,
     onSettled: (_data, _err, { leadId }) => {

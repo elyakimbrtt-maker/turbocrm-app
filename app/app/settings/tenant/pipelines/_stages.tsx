@@ -32,6 +32,7 @@ import { ROTULO_DO_PASSO } from "@/lib/leads/agent-mapping";
 import type { TaxaDaEtapa } from "@/lib/metrics/taxa-da-etapa";
 import { Archive, CaretDown, CaretUp, Plus, Warning } from "@/lib/ui/icons";
 import { SeloDeAutoria } from "@/components/operacao/SeloDeAutoria";
+import { SeletorDeCorDaEtapa } from "@/components/turbocrm/SeletorDeCorDaEtapa";
 import { useT } from "@/hooks/i18n/useT";
 
 import { mensagemDeErro } from "./_mapping";
@@ -547,6 +548,12 @@ export function StagesSection({
                 <span className="w-6 shrink-0 text-xs tabular-nums text-text-muted">
                   {i + 1}.
                 </span>
+
+                <SeletorDeCorDaEtapa
+                  etapa={etapa}
+                  desabilitado={ocupado}
+                  aoEscolher={(cor) => aplicar(etapa.id, { color: cor })}
+                />
 
                 {/* No empilhado, cada controle carrega o rótulo que no desktop
                     vive no cabeçalho — mesmas constantes, `sm:hidden`. */}

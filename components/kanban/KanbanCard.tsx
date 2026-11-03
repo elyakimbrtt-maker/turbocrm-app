@@ -181,11 +181,11 @@ export function KanbanCard({
           // `data-densidade` é o observável da densidade: o teste de tela mede
           // o card, não o estado do React.
           data-densidade={denso ? "compacta" : "confortavel"}
+          // TurboCRM: `--i` escalona a entrada em cascata (ver `.tcrm-card`).
+          style={{ ...provided.draggableProps.style, ["--i" as string]: Math.min(index, 12) }}
           className={cn(
-            "group relative overflow-hidden rounded-md border border-border bg-surface",
-            denso ? "py-1.5 pl-2.5 pr-2" : "py-2.5 pl-3 pr-3",
-            "shadow-xs transition-colors",
-            "hover:border-border-strong",
+            "tcrm-card group relative overflow-hidden rounded-2xl border",
+            denso ? "py-1.5 pl-3 pr-2" : "py-3 pl-4 pr-3",
             snapshot.isDragging && "rotate-1 shadow-md ring-1 ring-accent/40",
             isSelected && "ring-2 ring-accent",
           )}
@@ -208,10 +208,10 @@ export function KanbanCard({
           <span
             aria-hidden
             className={cn(
-              "absolute inset-y-0 left-0 w-0.5",
+              "absolute inset-y-2.5 left-1.5 w-1 rounded-full",
               state.border === "accent" && "bg-accent",
               state.border === "warning" && "bg-warning",
-              state.border === "neutral" && "bg-transparent",
+              state.border === "neutral" && "tcrm-barra-da-etapa",
             )}
           />
 
