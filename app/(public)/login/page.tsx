@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EntrarComGoogle } from "@/components/auth/EntrarComGoogle";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { verifyInviteToken } from "@/lib/auth/invite-token";
+import { googleHabilitado } from "@/lib/auth/google-habilitado";
 import { modoDeCadastro } from "@/lib/auth/politica-de-cadastro";
 import { marcaDaSaida } from "@/lib/branding/saida";
 import { createClient } from "@/lib/supabase/server";
@@ -37,6 +38,9 @@ export default async function LoginPage({
   const marca = await marcaDaSaida(null);
   // Só por convite: o "Criar conta" levaria a uma tela que só devolve um aviso.
   const soPorConvite = (await modoDeCadastro()) === "so_convite";
+  // Google desligado no GoTrue: o botão só devolveria erro. `null` (não deu
+  // para perguntar) mantém o botão, como sempre foi.
+  const mostrarGoogle = (await googleHabilitado()) !== false;
 
   return (
     <div className="space-y-6">
@@ -160,7 +164,7 @@ export default async function LoginPage({
           </Link>
         }
       />
-      <EntrarComGoogle next={next} />
+      {mostrarGoogle ? <EntrarComGoogle next={next} /> : null}
       {soPorConvite ? (
         <p className="flex items-start justify-center gap-2.5 px-2 text-center text-sm text-muted-foreground">
           <ShieldCheck size={20} aria-hidden className="mt-px shrink-0" />

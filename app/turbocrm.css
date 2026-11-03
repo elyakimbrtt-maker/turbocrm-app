@@ -91,6 +91,18 @@ body:where([data-theme="dark"] *) {
   --color-text-subtle: #6f737b;
   --color-border: rgb(255 255 255 / 0.10);
   --color-border-strong: rgb(255 255 255 / 0.18);
+  /*
+   * O `data-theme="dark"` desta casca reaplica o bloco escuro do globals.css,
+   * que traz a cor de ação PADRÃO do produto. A da marca vem em
+   * `--color-brand` (definida na raiz pela tela Admin › Marca) e é ela que
+   * volta aqui — nunca um vermelho escrito à mão.
+   */
+  --color-accent: var(--color-brand, #e52a30);
+  --color-accent-hover: color-mix(in srgb, var(--color-brand, #e52a30) 82%, white);
+  --color-accent-fg: #ffffff;
+  --color-accent-soft: color-mix(in srgb, var(--color-brand, #e52a30) 18%, transparent);
+  --color-accent-500: color-mix(in srgb, var(--color-brand, #e52a30) 80%, white);
+  --color-accent-600: var(--color-brand, #e52a30);
   background-color: #050607;
   color: var(--color-text);
 }
