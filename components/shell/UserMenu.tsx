@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { SeletorDeIdioma } from "@/components/shell/SeletorDeIdioma";
+import { SeletorDeFundo } from "@/components/turbocrm/SeletorDeFundo";
 import { useT } from "@/hooks/i18n/useT";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -109,6 +110,10 @@ export function UserMenu({
                   <SeletorDeIdioma />
                   <ThemeToggle />
                 </span>
+              </div>
+              <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+                <span className="text-xs text-muted-foreground">{t("Papel de parede")}</span>
+                <SeletorDeFundo />
               </div>
               <DropdownMenuSeparator />
             </>

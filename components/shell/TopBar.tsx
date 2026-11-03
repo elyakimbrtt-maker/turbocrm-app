@@ -17,7 +17,7 @@ import { SearchTrigger } from "./SearchTrigger";
 export function TopBar() {
   const t = useT();
   return (
-    <header className="tcrm-topo sticky top-[var(--faixas-de-cima,0px)] z-20 flex h-14 items-center justify-between gap-2 px-3 md:gap-4 md:px-6">
+    <header className="sticky top-[var(--faixas-de-cima,0px)] tcrm-topo z-20 flex h-14 items-center justify-between gap-2 px-3 md:gap-4 md:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <MobileSidebar />
         <TenantSwitcher />

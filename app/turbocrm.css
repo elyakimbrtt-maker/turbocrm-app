@@ -385,3 +385,40 @@ body:where([data-theme="dark"] *) {
 @media (prefers-reduced-motion: reduce) {
   .tcrm-acao-conversa-nova { animation: none; }
 }
+
+/* ── Papel de parede (só no tema escuro) ──────────────────────────────── */
+/* Camada fixa ATRÁS da casca: `isolation` faz o `z-index: -1` pintar acima do
+   fundo opaco da própria casca e abaixo de todo o conteúdo. O véu escuro por
+   cima da imagem é o que mantém o texto legível; o desfoque leve esconde que
+   as imagens foram ampliadas. Nada de `transform`/`filter` na casca em si —
+   isso quebraria o arrasto dos cards (`position: fixed`). */
+.tcrm-casca {
+  position: relative;
+  isolation: isolate;
+}
+html[data-theme="dark"][data-fundo="luz"] .tcrm-casca::before,
+html[data-theme="dark"][data-fundo="onda"] .tcrm-casca::before {
+  content: "";
+  position: fixed;
+  inset: -24px;
+  z-index: -1;
+  pointer-events: none;
+  background-position: center;
+  background-size: cover;
+  filter: blur(3px) saturate(115%);
+}
+html[data-theme="dark"][data-fundo="luz"] .tcrm-casca::before {
+  background-image:
+    linear-gradient(180deg, rgb(6 7 9 / 0.55) 0%, rgb(6 7 9 / 0.72) 100%),
+    url("/turbocrm/fundos/luz.webp");
+}
+html[data-theme="dark"][data-fundo="onda"] .tcrm-casca::before {
+  background-image:
+    linear-gradient(180deg, rgb(6 7 9 / 0.62) 0%, rgb(6 7 9 / 0.78) 100%),
+    url("/turbocrm/fundos/onda.webp");
+}
+@media (prefers-reduced-transparency: reduce) {
+  .tcrm-casca::before {
+    display: none;
+  }
+}
