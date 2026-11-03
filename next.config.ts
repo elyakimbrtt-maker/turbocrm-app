@@ -103,6 +103,11 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
+          // TurboCRM: o navegador passa a usar SEMPRE https neste domínio por
+          // um ano (HSTS). Sem `includeSubDomains`/`preload` de propósito: um
+          // subdomínio futuro ainda sem certificado não fica inacessível.
+          // Navegadores ignoram este cabeçalho quando chega por http (dev local).
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           // microphone=(self): o gravador de voz do composer (PTT estilo WhatsApp)
           // usa getUserMedia({audio}); microphone=() bloquearia em TODA origem,
