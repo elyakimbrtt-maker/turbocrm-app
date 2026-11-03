@@ -20,7 +20,16 @@ import { periodoDoPedido } from "@/lib/turbocrm/periodos";
 
 export const dynamic = "force-dynamic";
 
-const MODELO = "gemini-2.5-flash";
+/**
+ * Em ordem de preferência. O Google aposenta modelos para contas novas (o
+ * `gemini-2.5-flash` deixou de existir para elas em nov/2026) e os principais
+ * ficam sobrecarregados em horário de pico (503): o resumo tenta o próximo da
+ * lista em vez de falhar. `*-latest` acompanha a versão atual sem deploy.
+ * Sobrescrevível por `GEMINI_MODELOS` (separados por vírgula).
+ */
+const MODELOS_PADRAO = ["gemini-flash-latest", "gemini-3.5-flash", "gemini-flash-lite-latest"];
+/** Estes status querem dizer "tente outro modelo"; chave errada (400/403) não. */
+const TENTAR_OUTRO = new Set([404, 429, 500, 502, 503, 504]);
 const Corpo = z
   .object({
     periodo: z.enum(["hoje", "semana", "mes", "personalizado"]),
@@ -89,36 +98,56 @@ export async function POST(req: NextRequest): Promise<Response> {
     ...(linhas.length ? linhas : ["- (nenhum atendente cadastrado ainda)"]),
   ].join("\n");
 
+  const modelos = (process.env.GEMINI_MODELOS ?? "")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean);
   let texto = "";
-  try {
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": chave },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.6, maxOutputTokens: 900 },
-      }),
-      signal: AbortSignal.timeout(30_000),
-    });
-    const json = (await resp.json().catch(() => ({}))) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-      error?: { message?: string; status?: string };
-    };
-    if (!resp.ok) {
-      logger.warn("[painel/resumo-ia] o Gemini recusou", { status: resp.status, motivo: json.error?.status, requestId });
-      const msg =
-        resp.status === 429
-          ? "A cota gratuita do Gemini acabou por agora. Tente de novo em alguns minutos."
-          : resp.status === 400 || resp.status === 403
-            ? "O Gemini recusou a chave configurada. Confira a chave no servidor."
-            : "O Gemini não respondeu agora. Tente de novo em instantes.";
-      return fail("upstream_unavailable", msg, 502, { requestId });
+  let modelo = "";
+  let ultimoStatus = 0;
+  for (const candidato of modelos.length ? modelos : MODELOS_PADRAO) {
+    try {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${candidato}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": chave },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          // Folga para os modelos que "pensam" antes de escrever: com teto
+          // baixo eles gastam tudo pensando e devolvem texto vazio.
+          generationConfig: { temperature: 0.6, maxOutputTokens: 4096 },
+        }),
+        signal: AbortSignal.timeout(30_000),
+      });
+      const json = (await resp.json().catch(() => ({}))) as {
+        candidates?: Array<{ content?: { parts?: Array<{ text?: string; thought?: boolean }> } }>;
+        error?: { message?: string; status?: string };
+      };
+      ultimoStatus = resp.status;
+      if (!resp.ok) {
+        logger.warn("[painel/resumo-ia] o Gemini recusou", { modelo: candidato, status: resp.status, motivo: json.error?.status, requestId });
+        if (TENTAR_OUTRO.has(resp.status)) continue;
+        return fail("upstream_unavailable", "O Gemini recusou a chave configurada. Confira a chave no servidor.", 502, { requestId });
+      }
+      texto = (json.candidates?.[0]?.content?.parts ?? [])
+        .filter((p) => !p.thought)
+        .map((p) => p.text ?? "")
+        .join("")
+        .trim();
+      if (texto) {
+        modelo = candidato;
+        break;
+      }
+    } catch {
+      ultimoStatus = 504;
     }
-    texto = (json.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim();
-  } catch {
-    return fail("upstream_unavailable", "O Gemini demorou demais para responder. Tente de novo.", 504, { requestId });
   }
-  if (!texto) return fail("upstream_unavailable", "O Gemini respondeu vazio. Tente de novo.", 502, { requestId });
+  if (!texto) {
+    const msg =
+      ultimoStatus === 429
+        ? "A cota gratuita do Gemini acabou por agora. Tente de novo em alguns minutos."
+        : "O Gemini está sobrecarregado agora. Tente de novo em instantes.";
+    return fail("upstream_unavailable", msg, 502, { requestId });
+  }
 
   void audit({
     action: "painel.resumo_ia",
@@ -126,8 +155,8 @@ export async function POST(req: NextRequest): Promise<Response> {
     organizationId: authz.org.orgId,
     resourceType: "painel_gerente",
     resourceId: authz.org.orgId,
-    metadata: { periodo, modelo: MODELO, atendentes: n.vendedores.length },
+    metadata: { periodo, modelo, atendentes: n.vendedores.length },
     requestId,
   });
-  return ok({ texto, modelo: MODELO }, { requestId });
+  return ok({ texto, modelo }, { requestId });
 }

@@ -466,6 +466,8 @@ const schema = z.object({
    * relatório do painel do gerente. Vazia = o botão explica que falta a chave.
    */
   GEMINI_API_KEY: z.string().optional().default(""),
+  /** Modelos do Gemini em ordem, separados por vírgula. Vazio = a lista do app. */
+  GEMINI_MODELOS: z.string().optional().default(""),
 
   /**
    * E-mail de suporte que a instalação mostra ao CLIENTE FINAL (tela de conta
