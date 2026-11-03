@@ -182,15 +182,17 @@ type Arquivamento = {
  * no navegador, mas só depois de alguém rodá-la). Constante compartilhada torna
  * a divergência impossível em vez de indetectável.
  */
-// ⚠️ AS CLASSES SÃO LITERAIS INTEIRAS, com o prefixo `sm:` incluído: o Tailwind
+// TurboCRM: a linha só abre em colunas a partir de `xl` — em `sm` as larguras
+// fixas abaixo esmagavam o NOME da etapa para ~30px numa tela de notebook.
+// ⚠️ AS CLASSES SÃO LITERAIS INTEIRAS, com o prefixo `xl:` incluído: o Tailwind
 // varre o texto-fonte, então `sm:${...}` montado por interpolação NÃO gera CSS.
 // E o prefixo é o certo de qualquer jeito — no celular a linha empilha e largura
 // fixa espremeria os controles.
 const LARGURA = {
-  chance: "sm:w-[124px]",
-  ordem: "sm:w-[76px]",
-  papel: "sm:w-56",
-  arquivar: "sm:w-[104px]",
+  chance: "xl:w-[124px]",
+  ordem: "xl:w-[76px]",
+  papel: "xl:w-56",
+  arquivar: "xl:w-[104px]",
 } as const;
 
 /**
@@ -513,7 +515,7 @@ export function StagesSection({
           o conteúdo dela 1px para dentro. Sem a mesma borda aqui, cada rótulo
           fica 1px à direita do controle que nomeia — medido, não estimado. */}
       <div
-        className="hidden gap-3 border border-transparent px-4 text-xs font-medium text-text-muted sm:flex"
+        className="hidden gap-3 border border-transparent px-4 text-xs font-medium text-text-muted xl:flex"
         data-testid="etapas-cabecalho"
       >
         <span className="w-6 shrink-0" />
@@ -544,7 +546,7 @@ export function StagesSection({
               className="flex flex-col gap-3 p-4"
               data-testid={`etapa-${etapa.id}`}
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
                 <span className="w-6 shrink-0 text-xs tabular-nums text-text-muted">
                   {i + 1}.
                 </span>
@@ -558,7 +560,7 @@ export function StagesSection({
                 {/* No empilhado, cada controle carrega o rótulo que no desktop
                     vive no cabeçalho — mesmas constantes, `sm:hidden`. */}
                 <div className="min-w-0 flex-1 space-y-1">
-                  <span className="block text-xs font-medium text-text-muted sm:hidden">
+                  <span className="block text-xs font-medium text-text-muted xl:hidden">
                     {t(ROTULO.nome)}
                   </span>
                   <NomeDaEtapa
@@ -572,7 +574,7 @@ export function StagesSection({
                     100 e 0 NA REGRA, então o campo fica desabilitado ali —
                     digitar um número seria uma promessa que a regra ignora. */}
                 <div className={`${LARGURA.chance} shrink-0 space-y-1`}>
-                  <span className="block text-xs font-medium text-text-muted sm:hidden">
+                  <span className="block text-xs font-medium text-text-muted xl:hidden">
                     {t(ROTULO.chance)}
                   </span>
                   <ProbabilidadeDaEtapa
@@ -619,9 +621,9 @@ export function StagesSection({
                     rótulo em y=4893, setas em y=4883) e a linha ficava com três
                     rótulos em duas convenções diferentes. */}
                 <div
-                  className={`flex flex-col gap-1 ${LARGURA.ordem} shrink-0 sm:flex-row sm:items-center sm:justify-center sm:gap-1`}
+                  className={`flex flex-col gap-1 ${LARGURA.ordem} shrink-0 xl:flex-row xl:items-center xl:justify-center xl:gap-1`}
                 >
-                  <span className="text-xs font-medium text-text-muted sm:hidden">
+                  <span className="text-xs font-medium text-text-muted xl:hidden">
                     {t(ROTULO.ordem)}
                   </span>
                   <div className="flex items-center gap-1">
@@ -652,8 +654,8 @@ export function StagesSection({
                   </div>
                 </div>
 
-                <div className={`w-full shrink-0 space-y-1 ${LARGURA.papel} sm:space-y-0`}>
-                  <span className="block text-xs font-medium text-text-muted sm:hidden">
+                <div className={`w-full shrink-0 space-y-1 ${LARGURA.papel} xl:space-y-0`}>
+                  <span className="block text-xs font-medium text-text-muted xl:hidden">
                     {t(ROTULO.papel)}
                   </span>
                   <Select

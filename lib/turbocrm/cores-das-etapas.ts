@@ -7,16 +7,19 @@
  * temas, porque o quadro usa a cor em véu, nunca como fundo cheio de texto.
  */
 export const CORES_DAS_ETAPAS = [
-  { nome: "Vermelho", hex: "#e52a30" },
-  { nome: "Laranja", hex: "#f97316" },
-  { nome: "Âmbar", hex: "#f5a524" },
   { nome: "Verde", hex: "#22c55e" },
-  { nome: "Esmeralda", hex: "#10b981" },
-  { nome: "Ciano", hex: "#06b6d4" },
-  { nome: "Azul", hex: "#3b82f6" },
-  { nome: "Índigo", hex: "#6366f1" },
-  { nome: "Violeta", hex: "#8b5cf6" },
+  { nome: "Verde escuro", hex: "#16a34a" },
+  { nome: "Amarelo", hex: "#facc15" },
+  { nome: "Âmbar", hex: "#f5a524" },
+  { nome: "Laranja", hex: "#f97316" },
+  { nome: "Marrom âmbar", hex: "#b45309" },
+  { nome: "Vermelho", hex: "#e52a30" },
   { nome: "Rosa", hex: "#ec4899" },
+  { nome: "Lilás", hex: "#a78bfa" },
+  { nome: "Violeta", hex: "#8b5cf6" },
+  { nome: "Azul", hex: "#3b82f6" },
+  { nome: "Ciano", hex: "#06b6d4" },
+  { nome: "Cinza", hex: "#94a3b8" },
   { nome: "Grafite", hex: "#64748b" },
 ] as const;
 

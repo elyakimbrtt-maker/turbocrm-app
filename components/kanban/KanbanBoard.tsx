@@ -404,6 +404,7 @@ export function KanbanBoard({
               onMoverPara={aoMoverPelaLista}
               podeRenomear={podeRenomearEtapa}
               onRenomear={(nome) => renameStage.mutate({ stageId: stage.id, name: nome })}
+              onTrocarCor={(cor) => renameStage.mutate({ stageId: stage.id, color: cor })}
               denso={denso}
               somenteLeitura={somenteLeitura}
             />

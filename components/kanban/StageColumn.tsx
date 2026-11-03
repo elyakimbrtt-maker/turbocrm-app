@@ -8,6 +8,7 @@ import type { Stage } from "@/lib/kanban/types";
 import { buildCardInput } from "@/lib/kanban/card-state";
 import { intervaloDaColuna } from "@/lib/kanban/selecao";
 import { formatSomaPorMoeda, formatValorDoNegocio, MOEDA_PADRAO, somaPorMoeda } from "@/lib/money";
+import { SeletorDeCorDaEtapa } from "@/components/turbocrm/SeletorDeCorDaEtapa";
 import { corDaEtapa } from "@/lib/turbocrm/cores-das-etapas";
 import { KanbanCard, type GestoDeSelecao } from "./KanbanCard";
 
@@ -41,6 +42,8 @@ interface StageColumnProps {
   /** `manager`+ — mesmo corte de papel da rota que renomeia a etapa. */
   podeRenomear?: boolean;
   onRenomear?: (nome: string) => void;
+  /** TurboCRM: trocar a cor da etapa pela bolinha do cabeçalho (mesmo corte de papel). */
+  onTrocarCor?: (cor: string | null) => void;
   /** Densidade dos cards (issue #3461, item 2) — atravessa como `pulses`. */
   denso?: boolean;
   /**
@@ -67,6 +70,7 @@ export function StageColumn({
   onMoverPara,
   podeRenomear = false,
   onRenomear,
+  onTrocarCor,
   denso = false,
   somenteLeitura = false,
 }: StageColumnProps) {
@@ -224,11 +228,19 @@ export function StageColumn({
                 )}
               />
             )}
-            <span
-              className={cn("tcrm-ponto-etapa h-2.5 w-2.5 rounded-full", !cor && "bg-text-muted/40")}
-              style={accentStyle}
-              aria-hidden
-            />
+            {podeRenomear && onTrocarCor ? (
+              <SeletorDeCorDaEtapa
+                etapa={stage}
+                aoEscolher={onTrocarCor}
+                className="tcrm-ponto-etapa h-3.5 w-3.5 border-0"
+              />
+            ) : (
+              <span
+                className={cn("tcrm-ponto-etapa h-2.5 w-2.5 rounded-full", !cor && "bg-text-muted/40")}
+                style={accentStyle}
+                aria-hidden
+              />
+            )}
             {podeRenomear && onRenomear ? (
               // `key` pelo nome: remonta (e descarta o rascunho) quando o nome
               // GRAVADO muda — mesmo contrato de `NomeDaEtapa` em Configurações,

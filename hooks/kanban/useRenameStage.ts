@@ -8,7 +8,9 @@ import type { BoardData } from "@/lib/kanban/types";
 
 interface RenameArgs {
   stageId: string;
-  name: string;
+  name?: string;
+  /** TurboCRM: a cor da etapa também se troca daqui (`null` = neutra). */
+  color?: string | null;
 }
 
 /**
@@ -25,15 +27,15 @@ export function useRenameStage(pipelineId: string) {
   const queryKey = chaveDoQuadro(pipelineId);
 
   return useMutation({
-    mutationFn: ({ stageId, name }: RenameArgs) =>
-      apiClient.patch(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`, { name }),
-    onMutate: async ({ stageId, name }) => {
+    mutationFn: ({ stageId, ...patch }: RenameArgs) =>
+      apiClient.patch(`/api/v1/pipelines/${pipelineId}/stages/${stageId}`, patch),
+    onMutate: async ({ stageId, ...patch }) => {
       await qc.cancelQueries({ queryKey });
       const snapshot = qc.getQueryData<BoardData>(queryKey);
       if (snapshot) {
         qc.setQueryData<BoardData>(queryKey, {
           ...snapshot,
-          stages: snapshot.stages.map((s) => (s.id === stageId ? { ...s, name } : s)),
+          stages: snapshot.stages.map((s) => (s.id === stageId ? { ...s, ...patch } : s)),
         });
       }
       return { snapshot };
