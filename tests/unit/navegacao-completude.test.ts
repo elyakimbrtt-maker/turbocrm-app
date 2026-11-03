@@ -31,6 +31,8 @@ const BASE = path.join(RAIZ, "app", "app");
  * e quem revisar o PR a lê.
  */
 const NAV_ALLOWLIST: Record<string, string> = {
+  "/app/painel-gerente/relatorio":
+    "TurboCRM: sub-tela do painel do gerente, alcançada pelo botão \"Relatório em apresentação\" de dentro dele",
   "/app/painel-gerente":
     "TurboCRM: o painel do gerente tem porta própria no grupo Comercial do MenuTurbo (só gestor), fora do catálogo",
   "/app/inicio":

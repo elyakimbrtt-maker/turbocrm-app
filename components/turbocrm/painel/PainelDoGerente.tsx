@@ -19,6 +19,8 @@ import type { Periodo } from "@/lib/turbocrm/periodos";
 import {
   Briefcase,
   ChatCircleDots,
+  DownloadSimple,
+  PresentationChart,
   ClockCountdown,
   CurrencyCircleDollar,
   PencilSimple,
@@ -57,6 +59,39 @@ function Progresso({ feito, alvo, fino = false }: { feito: number; alvo: number 
   );
 }
 
+/**
+ * Baixa a planilha por trás de um número (link direto para a rota: o
+ * navegador salva o arquivo com o nome que o servidor dá).
+ */
+function BotaoBaixar({
+  indicador,
+  periodo,
+  rotulo,
+  comTexto = false,
+}: {
+  indicador: string;
+  periodo: Periodo;
+  rotulo: string;
+  comTexto?: boolean;
+}) {
+  const t = useT();
+  return (
+    <a
+      href={`/api/v1/painel-gerente/exportar?indicador=${indicador}&periodo=${periodo}`}
+      download
+      title={`${t("Baixar planilha")}: ${rotulo}`}
+      aria-label={`${t("Baixar planilha")}: ${rotulo}`}
+      className={cn(
+        "tcrm-botao-baixar flex shrink-0 items-center justify-center gap-1.5 rounded-full",
+        comTexto ? "h-9 px-3 text-xs font-medium" : "h-8 w-8",
+      )}
+    >
+      <DownloadSimple size={15} weight="bold" aria-hidden />
+      {comTexto ? t("Planilha") : null}
+    </a>
+  );
+}
+
 function Indicador({
   icone: I,
   rotulo,
@@ -65,8 +100,10 @@ function Indicador({
   detalhe,
   alerta,
   indice,
+  baixar,
   children,
 }: {
+  baixar?: React.ReactNode;
   icone: Icone;
   rotulo: string;
   valor: number;
@@ -83,8 +120,11 @@ function Indicador({
     >
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-text-muted">{rotulo}</span>
-        <span className="tcrm-icone-indicador flex h-8 w-8 items-center justify-center rounded-xl">
-          <I size={16} weight="bold" aria-hidden />
+        <span className="flex items-center gap-1.5">
+          {baixar}
+          <span className="tcrm-icone-indicador flex h-8 w-8 items-center justify-center rounded-xl">
+            <I size={16} weight="bold" aria-hidden />
+          </span>
         </span>
       </div>
       <span className="text-[1.75rem] font-bold leading-none tracking-tight tabular-nums">
@@ -250,9 +290,17 @@ export function PainelDoGerente() {
             </button>
           ))}
         </div>
-        <Button variant="outline" className="h-10 gap-2 rounded-full px-4" onClick={() => setEditando(true)}>
-          <PencilSimple size={16} aria-hidden /> {t("Metas do mês")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/app/painel-gerente/relatorio?periodo=${periodo}`}
+            className="tcrm-botao-baixar flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium"
+          >
+            <PresentationChart size={16} aria-hidden /> {t("Relatório em apresentação")}
+          </a>
+          <Button variant="outline" className="h-10 gap-2 rounded-full px-4" onClick={() => setEditando(true)}>
+            <PencilSimple size={16} aria-hidden /> {t("Metas do mês")}
+          </Button>
+        </div>
       </div>
 
       {isLoading || !data ? (
@@ -269,6 +317,10 @@ export function PainelDoGerente() {
               <div className="flex flex-col gap-2">
                 <span className="flex items-center gap-2 text-sm font-medium text-text-muted">
                   <Trophy size={16} weight="fill" className="text-[#f5a524]" aria-hidden /> {t("Vendas da loja no mês")}
+                  <span className="ml-auto flex gap-1.5">
+                    <BotaoBaixar indicador="vendas" periodo={periodo} rotulo={`${t("Vendas")} · ${rotuloPeriodo}`} comTexto />
+                    <BotaoBaixar indicador="perdas" periodo={periodo} rotulo={`${t("Negócios perdidos")} · ${rotuloPeriodo}`} />
+                  </span>
                 </span>
                 <span className="text-4xl font-black tracking-tight tabular-nums">
                   <Conta valor={data.loja.vendas_mes} />
@@ -297,11 +349,12 @@ export function PainelDoGerente() {
           </section>
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Indicador icone={ChatCircleDots} rotulo={t("Atendimentos")} valor={soma.atendimentos} detalhe={rotuloPeriodo} indice={1} />
-            <Indicador icone={Users} rotulo={t("Leads recebidos")} valor={soma.leads} detalhe={rotuloPeriodo} indice={2} />
+            <Indicador icone={ChatCircleDots} rotulo={t("Atendimentos")} valor={soma.atendimentos} detalhe={rotuloPeriodo} indice={1} baixar={<BotaoBaixar indicador="vendedores" periodo={periodo} rotulo={t("Atendimentos por vendedor")} />} />
+            <Indicador icone={Users} rotulo={t("Leads recebidos")} valor={soma.leads} detalhe={rotuloPeriodo} indice={2} baixar={<BotaoBaixar indicador="leads" periodo={periodo} rotulo={t("Leads recebidos")} />} />
             <Indicador
               icone={ClockCountdown}
               rotulo={t("Follow-ups de hoje")}
+              baixar={<BotaoBaixar indicador="followups" periodo={periodo} rotulo={t("Follow-ups de hoje e atrasados")} />}
               valor={soma.hoje}
               alerta={soma.atrasados > 0}
               detalhe={soma.atrasados > 0 ? `${soma.atrasados} ${t("atrasados")}` : t("nada atrasado")}
@@ -310,6 +363,7 @@ export function PainelDoGerente() {
             <Indicador
               icone={Briefcase}
               rotulo={t("Negócios em aberto")}
+              baixar={<BotaoBaixar indicador="abertos" periodo={periodo} rotulo={t("Negócios em aberto")} />}
               valor={soma.abertos}
               detalhe={`${dinheiro(soma.valorAberto)} ${t("em negociação")}`}
               indice={4}
@@ -328,10 +382,15 @@ export function PainelDoGerente() {
           <GraficoDoMes serie={data.serie} mes={data.mes} />
 
           <section aria-labelledby="titulo-vendedores">
-            <h2 id="titulo-vendedores" className="mb-3 flex items-center gap-2 text-base font-bold">
-              <Target size={18} aria-hidden /> {t("Vendedores")}
-              <span className="text-xs font-normal text-text-muted">· {rotuloPeriodo}</span>
-            </h2>
+            <div className="mb-3 flex items-center gap-2">
+              <h2 id="titulo-vendedores" className="flex items-center gap-2 text-base font-bold">
+                <Target size={18} aria-hidden /> {t("Vendedores")}
+                <span className="text-xs font-normal text-text-muted">· {rotuloPeriodo}</span>
+              </h2>
+              <span className="ml-auto">
+                <BotaoBaixar indicador="vendedores" periodo={periodo} rotulo={t("Resumo por vendedor")} comTexto />
+              </span>
+            </div>
             {vendedores.length === 0 && (
               <p className="tcrm-cartao-inicio rounded-[1.5rem] border p-5 text-sm text-text-muted">
                 {t("Nenhum atendente na equipe ainda. Convide os vendedores com o papel Atendente em Equipe › Convidar — gerentes e administradores não entram no painel.")}

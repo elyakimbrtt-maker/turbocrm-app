@@ -1422,6 +1422,10 @@ export const AUDIT_ACTIONS = [
   "feed.ranking_toggled",
   // TurboCRM: meta mensal de um vendedor ou da loja, no painel do gerente.
   "painel.meta_definida",
+  // Planilha baixada do painel (lista de clientes sai da plataforma: auditar).
+  "painel.exportado",
+  // Resumo do período escrito pela IA (só números agregados saem para o Gemini).
+  "painel.resumo_ia",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */

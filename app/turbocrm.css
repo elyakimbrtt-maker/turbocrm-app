@@ -643,3 +643,171 @@ html[data-theme="dark"][data-fundo="onda"] .tcrm-casca::before {
     translate: none;
   }
 }
+
+/* Botão de baixar planilha / relatório no painel do gerente. */
+.tcrm-botao-baixar {
+  color: var(--color-text-muted);
+  border: 1px solid color-mix(in srgb, var(--color-text) 12%, transparent);
+  background-color: color-mix(in srgb, var(--color-surface) 55%, transparent);
+  transition: color 140ms ease-out, border-color 140ms ease-out, background-color 140ms ease-out;
+}
+.tcrm-botao-baixar:hover {
+  color: var(--color-text);
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
+}
+.tcrm-botao-baixar:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ── Relatório do painel em formato de apresentação ────────────────────── */
+.tcrm-slide {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 1.5rem;
+  padding: 4.5%;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5%;
+  color: #16181d;
+  background: #f4f1ec;
+  box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.7);
+  overflow: hidden;
+  container-type: inline-size;
+}
+.tcrm-slide-escuro {
+  color: #f4f1ec;
+  background:
+    radial-gradient(ellipse at 85% 20%, rgb(229 42 48 / 0.4), transparent 55%),
+    #0e0f12;
+  justify-content: center;
+}
+.tcrm-slide-rotulo {
+  font-size: 1.6cqw;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #e52a30;
+}
+.tcrm-slide-titulo-grande {
+  font-size: 7cqw;
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+.tcrm-slide-titulo {
+  font-size: 4.2cqw;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.tcrm-slide-sub {
+  font-size: 2cqw;
+  opacity: 0.75;
+}
+.tcrm-slide-grade4,
+.tcrm-slide-grade3 {
+  margin-top: auto;
+  display: grid;
+  gap: 2cqw;
+  grid-template-columns: repeat(4, 1fr);
+}
+.tcrm-slide-grade3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.tcrm-slide-numero {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6cqw;
+  padding: 2cqw;
+  border-radius: 1.4cqw;
+  background: #ffffff;
+  border: 1px solid #e1dcd3;
+}
+.tcrm-slide-numero span {
+  font-size: 4.6cqw;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tcrm-slide-numero small {
+  font-size: 1.5cqw;
+  color: #4a4f58;
+}
+.tcrm-slide-alerta span {
+  color: #c41f25;
+}
+.tcrm-slide-tabela {
+  width: 100%;
+  font-size: 1.7cqw;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.tcrm-slide-tabela th {
+  text-align: left;
+  font-size: 1.4cqw;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6a6f78;
+  padding: 0.8cqw 1cqw;
+  border-bottom: 2px solid #e52a30;
+}
+.tcrm-slide-tabela td {
+  padding: 0.9cqw 1cqw;
+  border-bottom: 1px solid #e1dcd3;
+}
+.tcrm-slide-tabela tbody tr:first-child td {
+  font-weight: 700;
+}
+.tcrm-slide-texto {
+  font-size: 1.9cqw;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+.tcrm-slide-rodape {
+  margin-top: auto;
+  font-size: 1.2cqw;
+  opacity: 0.6;
+}
+
+/* Impressão / "Baixar PDF": um slide por página, deitado, sem a casca. */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .tcrm-relatorio,
+  .tcrm-relatorio * {
+    visibility: visible;
+  }
+  .tcrm-relatorio {
+    position: absolute;
+    inset: 0;
+    max-width: none;
+    gap: 0;
+  }
+  .tcrm-nao-imprimir {
+    display: none !important;
+  }
+  .tcrm-slide {
+    width: 100vw;
+    height: 100vh;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+    break-after: page;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .tcrm-casca::before {
+    display: none !important;
+  }
+}

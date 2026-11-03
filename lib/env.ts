@@ -461,6 +461,11 @@ const schema = z.object({
   SMTP_PASSWORD: z.string().optional().default(""),
   SMTP_FROM_EMAIL: z.string().optional().default(""),
   SMTP_FROM_NAME: z.string().optional().default(""),
+  /**
+   * TurboCRM: chave do Gemini (Google AI Studio) para o "Resumo com IA" do
+   * relatório do painel do gerente. Vazia = o botão explica que falta a chave.
+   */
+  GEMINI_API_KEY: z.string().optional().default(""),
 
   /**
    * E-mail de suporte que a instalação mostra ao CLIENTE FINAL (tela de conta
