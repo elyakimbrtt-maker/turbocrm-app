@@ -618,6 +618,18 @@ html[data-theme="dark"][data-fundo="onda"] .tcrm-casca::before {
   border-color: rgb(245 165 36 / 0.35);
   background-color: rgb(245 165 36 / 0.08);
 }
+/* Aviso de leads parados (painel do gerente e Início): laranja, mais forte que o âmbar do aviso geral. */
+.tcrm-alerta-parados {
+  border-color: rgb(249 115 22 / 0.4);
+  background-color: color-mix(in srgb, #f97316 9%, var(--color-surface));
+}
+.tcrm-linha-alerta {
+  background-color: color-mix(in srgb, var(--color-surface) 70%, transparent);
+}
+.tcrm-icone-alerta {
+  color: #f97316;
+  background-color: rgb(249 115 22 / 0.14);
+}
 .tcrm-abas {
   border-color: color-mix(in srgb, var(--color-text) 10%, transparent);
   background-color: color-mix(in srgb, var(--color-surface) 60%, transparent);

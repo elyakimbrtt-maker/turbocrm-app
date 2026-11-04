@@ -44,6 +44,8 @@ export interface PainelDoGerente {
   };
   serie: Array<{ dia: string; vendas: number; valor_cents: number }>;
   vendedores: IndicadoresDoVendedor[];
+  /** A partir de quantos leads parados o atendente é destacado, e o funil do link. */
+  alerta_parados: { limite: number; funil_id: string | null };
 }
 
 export function usePainelGerente(periodo: Periodo, intervalo?: Intervalo | null) {
@@ -62,6 +64,19 @@ export function useSalvarMeta() {
     mutationFn: (meta: { user_id: string | null; alvo_vendas: number | null; alvo_valor_cents: number | null }) =>
       apiClient.put("/api/v1/painel-gerente/metas", meta),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["turbocrm", "painel-gerente"] }),
+    onError: showApiError,
+  });
+}
+
+/** Grava a partir de quantos leads parados o painel e o Início avisam. */
+export function useSalvarLimiteDeParados() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (limite: number) => apiClient.put("/api/v1/painel-gerente/limite-parados", { limite }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["turbocrm", "painel-gerente"] });
+      void qc.invalidateQueries({ queryKey: ["turbocrm", "meus-parados"] });
+    },
     onError: showApiError,
   });
 }

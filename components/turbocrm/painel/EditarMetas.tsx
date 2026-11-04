@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useT } from "@/hooks/i18n/useT";
-import { useSalvarMeta, type PainelDoGerente } from "@/hooks/turbocrm/usePainelGerente";
+import { useSalvarLimiteDeParados, useSalvarMeta, type PainelDoGerente } from "@/hooks/turbocrm/usePainelGerente";
+import { LIMITE_MAX_DE_PARADOS, LIMITE_MIN_DE_PARADOS } from "@/lib/turbocrm/alerta-parados";
 
 interface Linha {
   user_id: string | null;
@@ -31,6 +32,9 @@ function numero(texto: string): number | null {
 export function EditarMetas({ painel, aoFechar }: { painel: PainelDoGerente; aoFechar: () => void }) {
   const t = useT();
   const salvar = useSalvarMeta();
+  const salvarLimite = useSalvarLimiteDeParados();
+  const limiteOriginal = String(painel.alerta_parados?.limite ?? "");
+  const [limite, setLimite] = useState(limiteOriginal);
   const [ocupado, setOcupado] = useState(false);
   const [linhas, setLinhas] = useState<Linha[]>(() => {
     const loja = {
@@ -57,7 +61,13 @@ export function EditarMetas({ painel, aoFechar }: { painel: PainelDoGerente; aoF
 
   async function gravar() {
     const mudadas = linhas.filter((l) => `${l.vendas}|${l.valor}` !== l.original);
-    if (mudadas.length === 0) return aoFechar();
+    const novoLimite = numero(limite);
+    const limiteMudou = limite !== limiteOriginal;
+    if (limiteMudou && (novoLimite === null || novoLimite < LIMITE_MIN_DE_PARADOS || novoLimite > LIMITE_MAX_DE_PARADOS)) {
+      toast.error(t("O aviso de leads parados precisa ser um número de 1 a 500."));
+      return;
+    }
+    if (mudadas.length === 0 && !limiteMudou) return aoFechar();
     setOcupado(true);
     try {
       for (const l of mudadas) {
@@ -68,6 +78,7 @@ export function EditarMetas({ painel, aoFechar }: { painel: PainelDoGerente; aoF
           alvo_valor_cents: valor === null ? null : valor * 100,
         });
       }
+      if (limiteMudou && novoLimite !== null) await salvarLimite.mutateAsync(novoLimite);
       toast.success(t("Metas salvas."));
       aoFechar();
     } catch {
@@ -112,6 +123,22 @@ export function EditarMetas({ painel, aoFechar }: { painel: PainelDoGerente; aoF
             ))}
           </div>
           <p className="mt-3 text-xs text-text-muted">{t("Deixe em branco para ficar sem meta. O valor é em reais inteiros (ex.: 150000).")}</p>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3 border-t pt-4 text-sm">
+            <label htmlFor="limite-parados" className="flex-1 min-w-48">
+              <span className="font-semibold">{t("Aviso de leads parados")}</span>
+              <span className="block text-xs text-text-muted">
+                {t("Destaca o atendente quando ele tiver esta quantidade de leads sem atividade há mais de 48 h.")}
+              </span>
+            </label>
+            <input
+              id="limite-parados"
+              inputMode="numeric"
+              value={limite}
+              onChange={(e) => setLimite(e.target.value.replace(/[^\d]/g, ""))}
+              className="tcrm-campo-publicar h-10 w-24 rounded-xl border px-3 text-right tabular-nums outline-hidden"
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={aoFechar} disabled={ocupado}>

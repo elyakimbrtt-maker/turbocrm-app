@@ -12,6 +12,7 @@ import { useT } from "@/hooks/i18n/useT";
 import { useFeed } from "@/hooks/turbocrm/useFeed";
 import { Confetti } from "@/lib/ui/icons";
 
+import { AvisoDosMeusParados } from "./AvisoDosMeusParados";
 import { NovaPublicacao } from "./NovaPublicacao";
 import { PublicacaoDoFeed } from "./PublicacaoDoFeed";
 import { RankingDeVendas } from "./RankingDeVendas";
@@ -45,6 +46,7 @@ export function PaginaInicial() {
       </div>
 
       <div className="flex min-w-0 flex-col gap-4 lg:order-1">
+        <AvisoDosMeusParados />
         <NovaPublicacao />
 
         {feed.isLoading ? (

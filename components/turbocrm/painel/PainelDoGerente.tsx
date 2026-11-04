@@ -15,8 +15,10 @@ import { useT } from "@/hooks/i18n/useT";
 import { useContagem } from "@/hooks/turbocrm/useContagem";
 import { usePainelGerente, type IndicadoresDoVendedor } from "@/hooks/turbocrm/usePainelGerente";
 import { formatValorDoNegocio } from "@/lib/money";
+import { atendentesAcimaDoLimite, linkDosParados } from "@/lib/turbocrm/alerta-parados";
 import { consultaDoPeriodo, type Intervalo, type Periodo } from "@/lib/turbocrm/periodos";
 import {
+  ArrowRight,
   Briefcase,
   ChatCircleDots,
   DownloadSimple,
@@ -166,6 +168,69 @@ function GraficoDoMes({ serie, mes }: { serie: Array<{ dia: string; vendas: numb
         <span>{Math.ceil(dias / 2)}</span>
         <span>{dias}</span>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Quem chegou ao limite de leads parados (sem atividade há 48 h), com o link
+ * que abre o funil já filtrado nele. O limite é da empresa e se muda em
+ * "Metas do mês".
+ */
+function AlertaDeParados({
+  vendedores,
+  limite,
+  funilId,
+  aoEditar,
+}: {
+  vendedores: IndicadoresDoVendedor[];
+  limite: number;
+  funilId: string | null;
+  aoEditar: () => void;
+}) {
+  const t = useT();
+  const acima = atendentesAcimaDoLimite(vendedores, limite);
+  if (acima.length === 0) return null;
+  return (
+    <section
+      className="tcrm-alerta-parados tcrm-surgir-suave rounded-[1.5rem] border p-4"
+      style={{ ["--i" as string]: 5 }}
+      aria-labelledby="titulo-alerta-parados"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <Warning size={18} weight="fill" className="shrink-0 text-[#f97316]" aria-hidden />
+        <h2 id="titulo-alerta-parados" className="text-sm font-bold">
+          {acima.length === 1
+            ? t("1 atendente com muitos leads parados")
+            : `${acima.length} ${t("atendentes com muitos leads parados")}`}
+        </h2>
+        <button type="button" onClick={aoEditar} className="ml-auto text-xs font-medium text-text-muted hover:text-text hover:underline">
+          {t("Aviso a partir de")} {limite} · {t("alterar")}
+        </button>
+      </div>
+      <ul className="mt-3 flex flex-col gap-2">
+        {acima.map((v) => (
+          <li key={v.user_id} className="tcrm-linha-alerta flex flex-wrap items-center gap-3 rounded-2xl px-3 py-2">
+            <Avatar className="h-9 w-9">
+              {v.pessoa.avatar_url ? <AvatarImage src={v.pessoa.avatar_url} alt="" /> : null}
+              <AvatarFallback className="text-xs font-semibold">{iniciais(v.pessoa.nome)}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold">{v.pessoa.nome}</p>
+              <p className="text-xs text-text-muted">
+                <span className="font-bold text-[#f97316] tabular-nums">{v.leads_parados}</span>{" "}
+                {t("leads sem atividade há mais de 48 h")}
+              </p>
+            </div>
+            <a
+              href={linkDosParados(funilId, v.user_id)}
+              className="tcrm-botao-baixar flex h-9 items-center gap-1.5 rounded-full px-3 text-xs font-medium"
+            >
+              {t("Ver no kanban")} <ArrowRight size={14} weight="bold" aria-hidden />
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -442,6 +507,13 @@ export function PainelDoGerente() {
               {soma.parados > 0 && <span>{soma.parados} {t("negócios parados há mais de 48 h")}</span>}
             </div>
           )}
+
+          <AlertaDeParados
+            vendedores={data.vendedores}
+            limite={data.alerta_parados.limite}
+            funilId={data.alerta_parados.funil_id}
+            aoEditar={() => setEditando(true)}
+          />
 
           <GraficoDoMes serie={data.serie} mes={data.mes} />
 

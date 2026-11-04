@@ -13,7 +13,7 @@ import { type NextRequest } from "next/server";
 
 import { fail, ok } from "@/lib/api/wrappers";
 import { requireRole } from "@/lib/auth/require-role";
-import { fusoDaEmpresa, numerosDoPainel } from "@/lib/turbocrm/painel";
+import { alertaDaEmpresa, fusoDaEmpresa, numerosDoPainel } from "@/lib/turbocrm/painel";
 import { periodoDoPedido } from "@/lib/turbocrm/periodos";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +26,12 @@ export async function GET(req: NextRequest): Promise<Response> {
   const fuso = fusoDaEmpresa(authz.org.timezone);
   const p = periodoDoPedido(new URL(req.url).searchParams, fuso);
   if (!p) return fail("validation_failed", "Escolha um intervalo válido, de até um ano.", 422, { requestId });
-  const r = await numerosDoPainel(authz.org.orgId, p.periodo, fuso, p.janelas);
+  const [r, alerta] = await Promise.all([
+    numerosDoPainel(authz.org.orgId, p.periodo, fuso, p.janelas),
+    alertaDaEmpresa(authz.org.orgId),
+  ]);
   if (!r.ok) return fail("internal_error", "Não consegui montar o painel.", 500, { requestId });
-  return ok(r.numeros, { requestId });
+  // `alerta_parados`: a partir de quantos leads parados o painel destaca o
+  // atendente, e o funil para o link "ver no kanban".
+  return ok({ ...r.numeros, alerta_parados: alerta }, { requestId });
 }

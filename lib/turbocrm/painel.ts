@@ -7,6 +7,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { FUSO_PADRAO, fusoValido } from "@/lib/tempo/fusos";
 import { pessoasPorId, type Pessoa } from "@/lib/turbocrm/feed";
+import { limiteDeParados } from "@/lib/turbocrm/alerta-parados";
 import type { Janelas, Periodo } from "@/lib/turbocrm/periodos";
 
 export interface NumerosDoPainel {
@@ -95,4 +96,26 @@ export async function numerosDoPainel(
       })),
     },
   };
+}
+
+/**
+ * O que o aviso de leads parados precisa saber da empresa: o limite (de
+ * `organizations.settings`) e o funil padrão, para o link abrir o kanban já
+ * filtrado no atendente. Nunca lança: sem leitura, vale o padrão.
+ */
+export async function alertaDaEmpresa(orgId: string): Promise<{ limite: number; funil_id: string | null }> {
+  const admin = createAdminClient();
+  const [org, funis] = await Promise.all([
+    admin.from("organizations").select("settings").eq("id", orgId).maybeSingle(),
+    admin
+      .from("crm_pipelines")
+      .select("id, is_default, is_archived, position")
+      .eq("organization_id", orgId)
+      .order("position"),
+  ]);
+  const vivos = ((funis.data ?? []) as Array<{ id: string; is_default: boolean | null; is_archived: boolean | null }>).filter(
+    (f) => !f.is_archived,
+  );
+  const funil = vivos.find((f) => f.is_default) ?? vivos[0] ?? null;
+  return { limite: limiteDeParados(org.data?.settings), funil_id: funil?.id ?? null };
 }

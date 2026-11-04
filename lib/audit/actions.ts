@@ -1426,6 +1426,8 @@ export const AUDIT_ACTIONS = [
   "painel.exportado",
   // Resumo do período escrito pela IA (só números agregados saem para o Gemini).
   "painel.resumo_ia",
+  // A partir de quantos leads parados o painel e o Início avisam (por atendente).
+  "painel.limite_parados_definido",
 ] as const;
 
 /** Um código de auditoria. Derivado de `AUDIT_ACTIONS` — não redigite a lista. */
