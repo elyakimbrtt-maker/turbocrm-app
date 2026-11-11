@@ -40,9 +40,9 @@ export function useAgentInbox(status: "open" | "resolved" = "open") {
   const consulta = useQuery({
     enabled: podeConsultar,
     queryKey: ["agent-inbox", status],
-    // 30 s: é esta leitura que toca o som da etapa que avisa e do pedido de
-    // pessoa (`useSonsDaCentral`) — um minuto de atraso num pedido de pessoa pesa.
-    refetchInterval: 30_000,
+    // 60 s: é esta leitura que toca o som da etapa que avisa e do pedido de
+    // pessoa (`useSonsDaCentral`); era 30 s, dobrou para aliviar o Supabase gratuito.
+    refetchInterval: 60_000,
     queryFn: () =>
       apiClient
         .get<{ data: AgentInboxData }>(`/api/v1/ai/inbox?status=${status}`)

@@ -19,7 +19,7 @@ export function useTenantHealth(id: string) {
     queryKey,
     queryFn: () => apiClient.get<HealthApiResponse>(`/api/v1/admin/tenants/${id}/health`),
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    refetchInterval: 120_000,
     enabled: !!id,
   });
 

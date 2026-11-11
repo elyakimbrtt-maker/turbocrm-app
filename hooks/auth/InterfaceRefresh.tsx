@@ -99,7 +99,7 @@ export function InterfaceRefresh({
     const refresh = () => {
       void check();
     };
-    const timer = setInterval(refresh, 30_000);
+    const timer = setInterval(refresh, 120_000);
     window.addEventListener("focus", refresh);
     window.addEventListener("online", refresh);
     document.addEventListener("visibilitychange", refresh);

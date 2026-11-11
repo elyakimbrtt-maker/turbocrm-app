@@ -15,6 +15,7 @@ import {
   etiquetaDeOrg,
   etiquetaDeSessao,
   etiquetaDeUsuario,
+  getUserDaSessao,
   sessaoDosCookies,
   type SessaoDosCookies,
 } from "@/lib/auth/cache-curto";
@@ -179,21 +180,9 @@ const sessaoDaRequisicao = cache(async () => {
    *
    * Só o SUCESSO é guardado: `error` é incidente, não estado — e `user: null`
    * com erro é justamente o caso que não pode virar resposta reaproveitada.
+   * A entrada é a mesma do `proxy.ts` (`getUserDaSessao`).
    */
-  const resposta =
-    sessao && sessao.expiraEm !== null
-      ? await comCacheCurto({
-          chave: `sessao:${sessao.chave}`,
-          etiquetas: [etiquetaDeSessao(sessao.chave)],
-          // A identidade também derruba a sessão: `invalidarUsuario` (sair de
-          // todos os aparelhos, MFA novo, revogação) alcança as OUTRAS sessões
-          // da pessoa, cujo cookie esta requisição não conhece.
-          etiquetasDoValor: (r) => (r.data?.user ? [etiquetaDeUsuario(r.data.user.id)] : []),
-          ate: sessao.expiraEm,
-          guardar: (r) => !r.error && !!r.data?.user,
-          carregar: () => supabase.auth.getUser(),
-        })
-      : await supabase.auth.getUser();
+  const resposta = await getUserDaSessao(sessao, () => supabase.auth.getUser());
   return { supabase, resposta, sessao };
 });
 
@@ -211,6 +200,18 @@ interface PermissoesResolvidas {
  * o cookie `active_org` — `resolveActiveOrg` pega `organizations[0]` —, e por
  * isso a ordenação não é enfeite: ver o comentário do `order` abaixo.
  */
+function consultarPlatformAdmin(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+) {
+  return supabase
+    .from("platform_admins")
+    .select("user_id, scope, revoked_at")
+    .eq("user_id", userId)
+    .is("revoked_at", null)
+    .maybeSingle();
+}
+
 async function lerPermissoes(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
@@ -221,12 +222,7 @@ async function lerPermissoes(
     { data: paRow, error: paErro },
     { data: rawMemberships, error: membErro },
   ] = await Promise.all([
-      supabase
-        .from("platform_admins")
-        .select("user_id, scope, revoked_at")
-        .eq("user_id", userId)
-        .is("revoked_at", null)
-        .maybeSingle(),
+      consultarPlatformAdmin(supabase, userId),
       supabase
         .from("user_organizations")
         .select(
@@ -322,29 +318,51 @@ async function lerPermissoes(
  * `tests/unit/acesso-revogado-nao-espera-o-cache.test.ts` percorre estes
  * arquivos e reprova quem esquecer.
  *
- * ⚠️ E O PODER DE PLATAFORMA POSITIVO NÃO É CACHEADO (`guardar`). Um grant só
- * nasce e só morre por SQL direto — a rota de `platform_admins` é 405 por
- * projeto (Spec 01 §3.4 T-04) —, logo não existe invalidação confiável para
- * ele. Guardar a AUSÊNCIA é seguro por construção: um "não é admin" obsoleto
- * só pode NEGAR, nunca conceder. O preço é o platform admin pagar as duas
- * consultas a cada requisição; o ganho é não existir janela em que um grant
- * revogado por DBA continue valendo.
+ * ⚠️ E O PODER DE PLATAFORMA POSITIVO NUNCA SAI DO CACHE. Um grant só nasce e
+ * só morre por SQL direto — a rota de `platform_admins` é 405 por projeto
+ * (Spec 01 §3.4 T-04) —, logo não existe invalidação confiável para ele. O
+ * snapshot guarda os vínculos de todos (eles têm invalidação), mas quando o
+ * acerto traz `paRow` positivo ele é RECONFIRMADO no banco nesta requisição:
+ * um grant revogado por DBA deixa de valer na hora. Já a AUSÊNCIA é servida do
+ * cache — um "não é admin" obsoleto só pode NEGAR, nunca conceder. Antes o
+ * platform admin pagava as duas consultas a cada requisição; agora paga uma.
  */
 const permissoesDoUsuario = cache(
   async (
     userId: string,
     supabase: Awaited<ReturnType<typeof createClient>>,
-  ): Promise<PermissoesResolvidas> =>
-    comCacheCurto({
+  ): Promise<PermissoesResolvidas> => {
+    let leuAgora = false;
+    const permissoes = await comCacheCurto({
       chave: `permissoes:${userId}`,
       etiquetas: [etiquetaDeUsuario(userId)],
       // As orgs só se conhecem DEPOIS da consulta, e é por elas que a
       // suspensão de uma empresa (que muda `org_status` de todos os membros)
       // derruba o snapshot de cada um com um `invalidarOrg` só.
       etiquetasDoValor: (p) => p.memberships.map((m) => etiquetaDeOrg(m.organization_id)),
-      guardar: (p) => p.paRow === null,
-      carregar: () => lerPermissoes(supabase, userId),
-    }),
+      carregar: () => {
+        leuAgora = true;
+        return lerPermissoes(supabase, userId);
+      },
+    });
+    if (leuAgora || permissoes.paRow === null) return permissoes;
+
+    const { data: paRow, error } = await consultarPlatformAdmin(supabase, userId);
+    if (error) {
+      // Mesma regra de `lerPermissoes`: falha de infra estoura, não rebaixa.
+      logger.error("[auth] não foi possível resolver permissões do usuário", {
+        user_id: userId,
+        onde: "platform_admins",
+        code: error.code,
+        message: error.message,
+      });
+      throw new Error(
+        `auth_permissions_unavailable: ${error.message} — permissões não puderam ser ` +
+          `resolvidas; a sessão NÃO foi rebaixada por decisão de autorização.`,
+      );
+    }
+    return { ...permissoes, paRow: (paRow ?? null) as PermissoesResolvidas["paRow"] };
+  },
 );
 
 /**

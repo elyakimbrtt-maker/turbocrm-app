@@ -71,7 +71,7 @@ export function useConversationCounts(
     // voltaria a mentir, agora pelo cache. Seria o mesmo defeito por outra porta.
     queryKey: ["conversation-counts", orgId, sufixo],
     enabled: !!orgId,
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
     queryFn: () =>
       apiClient
         .get<{ data: ConversationCounts }>(

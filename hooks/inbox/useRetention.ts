@@ -17,14 +17,14 @@ export interface RetentionData {
 
 /**
  * Vetos recentes da cadeia before_send para a conversa aberta (F2-i). Polling
- * leve: um veto acontece no worker, fora do realtime de mensagens — 30s é
+ * leve: um veto acontece no worker, fora do realtime de mensagens — 2 min é
  * suficiente pra "operação visível" sem custo de canal dedicado.
  */
 export function useRetention(conversationId: string | null) {
   return useQuery({
     queryKey: ["conversation-retention", conversationId],
     enabled: !!conversationId,
-    refetchInterval: 30_000,
+    refetchInterval: 120_000,
     queryFn: () =>
       apiClient
         .get<{ data: RetentionData }>(`/api/v1/conversations/${conversationId}/retention`)

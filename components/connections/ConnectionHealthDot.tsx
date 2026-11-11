@@ -25,11 +25,11 @@ const DOT_LABEL: Record<ConnectionHealth, string> = {
 
 /**
  * Bolinha de saúde exibida ao lado do item "Conexões" na sidebar. Poll leve
- * (30s) para o usuário ver de relance quando um número cai — sem precisar abrir nada.
+ * (2 min) para o usuário ver de relance quando um número cai — sem precisar abrir nada.
  */
 export function ConnectionHealthDot({ className }: { className?: string }) {
   const t = useT();
-  const { data, isError } = useChannelSessions({ refetchInterval: 30_000 });
+  const { data, isError } = useChannelSessions({ refetchInterval: 120_000 });
   // Listagem que falhou não vira "Nenhuma conexão": a bolinha é o único sinal
   // ambiente de canal caído, e dizer "nenhuma" a quem tem número ligado é o
   // mesmo engano da Central de Conexões — o operador conclui que perdeu tudo.

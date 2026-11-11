@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 import { fetchDoServidor } from "@/lib/supabase/fetch-do-servidor";
 import { urlDoSupabaseNoServidor } from "@/lib/supabase/url-do-servidor";
 import { isPublicPath } from "@/lib/auth/public-paths";
+import { getUserDaSessao, sessaoDosCookies } from "@/lib/auth/cache-curto";
 import { CABECALHO_SEM_CSS, PARAMETRO_SEM_CSS } from "@/lib/branding/sem-css-personalizado";
 import {
   verifyImpersonateCookieEdge,
@@ -93,9 +94,14 @@ export async function proxy(request: NextRequest) {
   );
 
   // Validate JWT server-side (NEVER use getSession on backend per CLAUDE.md).
+  // Reaproveita a validação da mesma sessão por até 30 s — a mesma entrada que o
+  // `loadAuthUser` lê: o proxy roda antes de toda requisição e era quem mais
+  // chamava `/auth/v1/user`. Sem acerto, é o `getUser()` de sempre (que renova o token).
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getUserDaSessao(sessaoDosCookies(request.cookies.getAll()), () =>
+    supabase.auth.getUser(),
+  );
 
   if (!user) {
     // API routes must respond with JSON envelope (contract: {error:{code,message}})

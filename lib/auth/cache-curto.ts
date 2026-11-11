@@ -464,3 +464,31 @@ function instanteDeExpiracaoDoJwt(sessao: SessaoDoCookie): number | null {
     return null;
   }
 }
+
+/**
+ * O `getUser()` da sessão atravessando requisições — a MESMA entrada para o
+ * `proxy.ts` e para `loadAuthUser` (chave `sessao:<hash>`). Antes só o servidor
+ * reaproveitava; o proxy, que roda antes de TODA requisição (documento, RSC,
+ * cada chamada de `/api/v1`), validava o token de novo no GoTrue sempre — era o
+ * grosso do `/auth/v1/user` no log do Supabase.
+ *
+ * Mesmas travas de `sessaoDaRequisicao` em `lib/auth/server.ts`: chave é o hash
+ * dos cookies (token rotacionado, chave nova), teto é o `exp` do JWT, sem `exp`
+ * legível não cacheia, e só o SUCESSO é guardado. `invalidarSessao`/
+ * `invalidarUsuario` derrubam a entrada para os dois leitores de uma vez.
+ */
+export function getUserDaSessao<
+  R extends { error: unknown; data: { user: { id: string } | null } },
+>(sessao: SessaoDosCookies | null, getUser: () => Promise<R>): Promise<R> {
+  if (!sessao || sessao.expiraEm === null) return getUser();
+  return comCacheCurto({
+    chave: `sessao:${sessao.chave}`,
+    etiquetas: [etiquetaDeSessao(sessao.chave)],
+    // A identidade também derruba a sessão: `invalidarUsuario` (sair de todos
+    // os aparelhos, MFA novo, revogação) alcança as OUTRAS sessões da pessoa.
+    etiquetasDoValor: (r) => (r.data?.user ? [etiquetaDeUsuario(r.data.user.id)] : []),
+    ate: sessao.expiraEm,
+    guardar: (r) => !r.error && !!r.data?.user,
+    carregar: getUser,
+  });
+}

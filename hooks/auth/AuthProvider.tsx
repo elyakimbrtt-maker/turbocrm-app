@@ -64,7 +64,11 @@ export function AuthProvider({
       const result = await response.json();
       if (result.data.signature !== expected) window.location.reload();
     };
-    const timer = setInterval(() => { void check(); }, 15000);
+    // Aba oculta não confere: o acompanhamento também cai pelo servidor
+    // (`requireSupportWrite`), e a tela é conferida na próxima batida visível.
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") void check();
+    }, 60_000);
     return () => clearInterval(timer);
   }, [user.support]);
 

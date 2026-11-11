@@ -13,6 +13,6 @@ export function useAdminDashboardKPIs() {
     queryFn: () =>
       apiClient.get<KPIsResponse>("/api/v1/admin/dashboard/kpis").then((r) => r.data),
     staleTime: 15_000,
-    refetchInterval: 30_000,
+    refetchInterval: 120_000,
   });
 }

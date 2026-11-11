@@ -35,6 +35,7 @@ const estado = {
   getUsers: 0,
   suporte: null as unknown,
   leiturasDeSuporte: 0,
+  leiturasDePlatformAdmin: 0,
 };
 
 function cookieDeSessao(): { name: string; value: string } {
@@ -102,6 +103,7 @@ vi.mock("@/lib/supabase/server", () => ({
         return cadeia(() => ({ data: estado.membros, error: estado.erroDeVinculo }));
       }
       if (tabela === "platform_admins") {
+        estado.leiturasDePlatformAdmin += 1;
         return cadeia(() => ({ data: estado.platformAdmin, error: null }));
       }
       return cadeia(() => ({ data: null, error: null }));
@@ -140,6 +142,7 @@ beforeEach(() => {
   estado.getUsers = 0;
   estado.suporte = null;
   estado.leiturasDeSuporte = 0;
+  estado.leiturasDePlatformAdmin = 0;
 });
 
 afterEach(() => {
@@ -187,6 +190,19 @@ describe("cache curto entre requisições (#3696)", () => {
     const depois = await loadAuthUser();
     expect(depois?.organizations).toHaveLength(1);
     expect(estado.leiturasDeVinculo).toBe(2);
+  });
+
+  it("platform admin: o vínculo vem do cache, mas o grant POSITIVO é relido a cada requisição", async () => {
+    estado.platformAdmin = { user_id: USER_ID, scope: "full" };
+    expect((await loadAuthUser())?.is_platform_admin).toBe(true);
+    expect((await loadAuthUser())?.is_platform_admin).toBe(true);
+    expect(estado.leiturasDeVinculo).toBe(1);
+    expect(estado.leiturasDePlatformAdmin).toBe(2);
+
+    // Revogado por SQL (sem invalidação possível): a próxima requisição já nega.
+    estado.platformAdmin = null;
+    expect((await loadAuthUser())?.is_platform_admin).toBe(false);
+    expect(estado.leiturasDeVinculo).toBe(1);
   });
 });
 

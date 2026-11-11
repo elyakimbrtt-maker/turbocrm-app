@@ -227,10 +227,11 @@ export function motivoDoFallback(
 /**
  * Curto de propósito. O que a invalidação da escrita já cobre (o processo do
  * app) não precisa de TTL nenhum; o TTL só existe para edição direta no banco e
- * para uma segunda réplica hipotética. 30s é abaixo do que uma pessoa espera
- * antes de concluir "não salvou", e acima do intervalo entre dois renders.
+ * para uma segunda réplica hipotética. 60s: a escrita pelo app já invalida na
+ * hora, então o TTL só pesa em edição direta no banco — e cada render a menos
+ * é uma ida a menos ao Supabase do plano gratuito.
  */
-const TTL_MS = 30_000;
+const TTL_MS = 60_000;
 
 type Memoria = { readonly linha: LinhaDaMarca | null; readonly expiraEm: number };
 
