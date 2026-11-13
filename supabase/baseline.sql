@@ -9604,14 +9604,20 @@ alter table public.channel_sessions
   add column if not exists datafy_waba_id text,
   add column if not exists datafy_token_encrypted bytea;
 
+-- instagram_direto (migration 9905, Instagram API com login do Instagram) — a
+-- coluna do sessionRef, nullable e antes das constraints que a referenciam.
+alter table public.channel_sessions
+  add column if not exists instagram_account_id text;
+
 alter table public.channel_sessions
   drop constraint if exists channel_sessions_provider_check;
 
 alter table public.channel_sessions
   add constraint channel_sessions_provider_check
-  -- 'wacalls' (0233), 'zernio_social' (0368) e 'datafy' (0387) somados AQUI —
+  -- 'wacalls' (0233), 'zernio_social' (0368), 'datafy' (0387) e
+  -- 'instagram_direto' (9905) somados AQUI —
   -- UM bloco só por constraint (não duplicar drop+add por migration).
-  check (provider = any (array['waha'::text, 'meta_cloud'::text, 'zernio'::text, 'wacalls'::text, 'zernio_social'::text, 'datafy'::text]));
+  check (provider = any (array['waha'::text, 'meta_cloud'::text, 'zernio'::text, 'wacalls'::text, 'zernio_social'::text, 'datafy'::text, 'instagram_direto'::text]));
 
 alter table public.channel_sessions
   drop constraint if exists channel_sessions_provider_ref_check;
@@ -9624,7 +9630,8 @@ alter table public.channel_sessions
     -- é o mesmo intermediário, com outra superfície de canal.
     (provider in ('zernio', 'zernio_social') and zernio_account_id is not null) or
     (provider = 'wacalls'    and wacalls_session_id    is not null) or
-    (provider = 'datafy'     and datafy_phone_number_id is not null)
+    (provider = 'datafy'     and datafy_phone_number_id is not null) or
+    (provider = 'instagram_direto' and instagram_account_id is not null)
   );
 
 comment on column public.channel_sessions.zernio_account_id is
@@ -71671,3 +71678,20 @@ create index if not exists avisos_org_publicar_idx
 alter table public.avisos enable row level security;
 revoke all on public.avisos from public, anon, authenticated;
 grant select, insert, update, delete on public.avisos to service_role;
+
+-- ---- canal Instagram direto (migration 9905) ----
+-- A coluna `instagram_account_id` e o provider 'instagram_direto' nos dois CHECKs
+-- de channel_sessions entram no bloco ÚNICO delas, lá em cima (procure por
+-- `channel_sessions_provider_check`) — doutrina "uma constraint, um bloco"
+-- (tests/unit/baseline-constraint-reconstruida.test.ts). Aqui só o que depende
+-- da coluna já existir. Idempotente; não cria função.
+--
+-- Uma conta do Instagram, um canal ativo na instalação (mesma régua da 0165).
+create unique index if not exists channel_sessions_instagram_account_id_ativo_unique
+  on public.channel_sessions (instagram_account_id)
+  where archived_at is null and instagram_account_id is not null;
+
+comment on column public.channel_sessions.instagram_account_id is
+  'Id da conta profissional do Instagram (user_id do GET /me da Instagram API). É o sessionRef do canal instagram_direto e o entry.id que o webhook precisa trazer. Espelhado em lib/channels/session-ref.ts.';
+
+notify pgrst, 'reload schema';
