@@ -30,6 +30,7 @@ import type { ChannelAdapter, ChannelProvider, OutboundEnvelope, RecipientInput 
 import { redeSocial, type PortaSocialId } from "./catalog";
 import {
   exigenciasEmFalta,
+  portaAtende,
   portaDaRede,
   type CredencialDaPorta,
   type ExigenciaDaPorta,
@@ -152,7 +153,9 @@ export function adaptadorDaPorta({
   transporte = null,
 }: OpcoesDoAdaptadorDaPorta): ChannelAdapter {
   const escolhida = portaDaRede(plataforma, porta);
-  const provider: ChannelProvider | null = escolhida.providerNoBanco;
+  const provider: ChannelProvider | null = portaAtende(escolhida, plataforma)
+    ? escolhida.providerNoBanco
+    : null;
   if (!provider) {
     throw new PortaSemTransporteError(plataforma, escolhida, "sem_provider_no_banco");
   }

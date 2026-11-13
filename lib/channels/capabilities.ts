@@ -102,6 +102,24 @@ export const CHANNEL_CAPABILITIES: Record<ProviderDeMensagem, ChannelCapabilitie
     // agenda de celular a ler, e dizer `true` aqui seria um botão que só falha.
     phonebook: false,
   },
+  // Instagram pela Instagram API com login do Instagram, sem intermediário. Mesma
+  // física da rede social intermediada, porque a regra é da Meta e não do
+  // transporte: só se responde a quem escreveu, dentro de 24 horas (fora dela a
+  // API recusa com erro), não há modelo aprovado que reabra a conversa, e não há
+  // número para banir. A resposta privada a um comentário (até 7 dias) é exceção
+  // que o adapter trata pela citação, não uma capability.
+  instagram_direto: {
+    freeformOutsideWindow: false,
+    requiresTemplates: false,
+    canManageTemplates: false,
+    banRisk: false,
+    minIntervalMs: 1000,
+    voiceNote: "server-convert",
+    groups: "none",
+    costPerMessage: false,
+    alteraMensagemEnviada: false,
+    phonebook: false,
+  },
   // Parceiro homologado pela Meta que espelha a Cloud API (recorte do #1130):
   // a WABA, a janela de 24h e o custo são da Meta. O parceiro muda o TRANSPORTE
   // (host, token), não o que o WhatsApp permite — então o perfil é o do canal
@@ -151,6 +169,8 @@ export const CHANNEL_PROVIDER_ZERNIO: ChannelProvider = "zernio";
 export const CHANNEL_PROVIDER_DATAFY: ChannelProvider = "datafy";
 /** Chamada de voz WhatsApp (spec 18). Não transporta mensagem — ver abaixo. */
 export const CHANNEL_PROVIDER_WACALLS: ChannelProvider = "wacalls";
+/** Instagram pela API da própria Meta, sem intermediário (migration 9905). */
+export const CHANNEL_PROVIDER_INSTAGRAM: ChannelProvider = "instagram_direto";
 
 /**
  * O provider em que o NÚMERO é a conexão: pareado por QR, a linha só vira
@@ -182,6 +202,7 @@ export const PROVIDERS_DE_MENSAGEM = [
   "zernio",
   "zernio_social",
   "datafy",
+  "instagram_direto",
 ] as const satisfies readonly ProviderDeMensagem[];
 
 /**
@@ -203,7 +224,10 @@ export const PROVIDERS_DE_TELEFONE = [
   "meta_cloud",
   "zernio",
   "datafy",
-] as const satisfies readonly Exclude<(typeof PROVIDERS_DE_MENSAGEM)[number], "zernio_social">[];
+] as const satisfies readonly Exclude<
+  (typeof PROVIDERS_DE_MENSAGEM)[number],
+  "zernio_social" | "instagram_direto"
+>[];
 
 /**
  * `true` quando a linha de `channel_sessions` é um canal de mensagem.

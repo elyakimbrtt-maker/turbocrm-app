@@ -80,6 +80,9 @@ CRONS="
 * * * * *|25|api/v1/cron/channel-pause-scheduler
 */10 * * * *|60|api/v1/cron/contact-avatars
 */10 * * * *|60|api/v1/cron/agenda-google-refresh
+# O TOKEN DO INSTAGRAM DIRETO (migration 9905). Diário: o token vale 60 dias e a
+# rodada renova quem vence nos próximos 20 — sobra folga para várias tentativas.
+17 6 * * *|60|api/v1/cron/instagram-token-refresh
 * * * * *|90|api/v1/cron/agenda-google-sync
 # A IDA. Cadência mais curta que a volta de propósito: quem marcou pela tela
 # espera ver o compromisso no celular dele em minutos, e a ida é barata (só

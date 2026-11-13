@@ -19,7 +19,7 @@ import { ChannelAiAccess } from "./ChannelAiAccess";
 import { ParaIntegrar } from "./ParaIntegrar";
 
 /** Campo somente-leitura com botão de copiar — o que o operador cola na Meta. */
-function ParaColar({
+export function ParaColar({
   rotulo,
   valor,
   semValor,

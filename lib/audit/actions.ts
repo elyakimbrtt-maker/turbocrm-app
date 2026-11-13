@@ -307,6 +307,9 @@ export const AUDIT_ACTIONS = [
   // Reescreve a URL da assinatura de webhook do canal social pela origem atual
   // (#2863): não arquiva a linha nem cria canal — só reconcilia o endereço.
   "channel.social_webhook_ressincronizado",
+  // A rodada diária que renova o token de 60 dias do Instagram direto (9905).
+  // Só quando renovou ou falhou alguma conta — rodada vazia não audita.
+  "channel.instagram_token_renovado",
   "channel.ai_access_updated",
   "channel.acervo_updated",
   // A importação do histórico do número (#999): prévia, início, cancelamento e

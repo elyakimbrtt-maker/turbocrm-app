@@ -37,8 +37,8 @@ export type PortaSocialId = "direta" | "intermediada";
 export const SOCIAL_NETWORKS = [
   // O Instagram volta pelo modelo neutro: é a rede que o #965 espera, e a
   // conexão DIRETA vem primeiro porque a decisão do dono (15/set) é que o
-  // parceiro seja porta OPCIONAL. Ela ainda não tem transporte — e é o modelo,
-  // não um comentário, que diz isso (ver `PORTAS_SOCIAIS` em `./porta.ts`).
+  // parceiro seja porta OPCIONAL. Desde a migration 9905 ela tem transporte
+  // para o Instagram (não para o Facebook) — ver `PORTAS_SOCIAIS` em `./porta.ts`.
   { id: "instagram", label: "Instagram", inbox: true, portas: ["direta", "intermediada"] },
   { id: "facebook", label: "Facebook", inbox: true, portas: ["direta", "intermediada"] },
   { id: "linkedin", label: "LinkedIn", inbox: false, portas: ["intermediada"] },

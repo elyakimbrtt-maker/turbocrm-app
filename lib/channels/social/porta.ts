@@ -22,21 +22,18 @@
  * justamente o lugar onde ele é um DADO (qual valor a coluna recebe) e não uma
  * pergunta.
  *
- * ─── Por que `direta` é declarada sem transporte ────────────────────────────
+ * ─── A porta `direta` existe para o Instagram, e só para ele ─────────────────
  *
- * Porque é a VERDADE, e porque a verdade é o que faltava para o #965 andar.
- * Medido: `channel_sessions_provider_check` (`supabase/baseline.sql`) aceita
- * `waha, meta_cloud, zernio, wacalls, zernio_social, datafy` — não existe valor
- * para uma conexão direta com o Instagram. `ChannelAdapter.provider` é
- * `ChannelProvider` e é OBRIGATÓRIO (ver `../types.ts`), então sem valor na
- * coluna não há adapter a montar: não é preguiça, é o contrato.
- *
- * Escrever `implementada: false` e `providerNoBanco: null` faz a lacuna aparecer
- * numa expressão (`portaDisponivel("instagram")`) em vez de num comentário que
- * envelhece. Quem for ligar a conexão direta sabe, pela leitura do modelo, que o
- * primeiro passo é um valor no CHECK — migration, e portanto PR próprio.
+ * Até a migration 9905 ela era declarada sem transporte: o CHECK de
+ * `channel_sessions.provider` não tinha valor para ela, e sem valor na coluna
+ * não há adapter a montar (`ChannelAdapter.provider` é obrigatório). A 9905 deu
+ * o valor (`CHANNEL_PROVIDER_INSTAGRAM`) e o transporte mora em
+ * `../instagram/`. O Facebook continua declarando a porta direta no catálogo,
+ * mas sem transporte — é `soPara` que diz isso numa expressão
+ * (`portaDisponivel("facebook")` segue na intermediada), não um comentário.
  */
 import type { ProviderDeMensagem } from "../types";
+import { CHANNEL_PROVIDER_INSTAGRAM } from "../capabilities";
 import { redeSocial, SOCIAL_PROVIDER, type PortaSocialId } from "./catalog";
 
 /**
@@ -69,6 +66,11 @@ export interface PortaSocial {
   exige: readonly ExigenciaDaPorta[];
   /** Existe transporte para esta porta NESTE código? */
   implementada: boolean;
+  /**
+   * As redes que o transporte desta porta atende, quando não são todas as que a
+   * declaram no catálogo. Ausente = todas.
+   */
+  soPara?: readonly string[];
 }
 
 /**
@@ -79,16 +81,17 @@ export interface PortaSocial {
 export const PORTAS_SOCIAIS: Record<PortaSocialId, PortaSocial> = {
   /**
    * A conexão com a plataforma da própria rede. É a porta que o dono decidiu
-   * preferir (o parceiro vira opcional), e a que ainda NÃO existe: ver o
-   * cabeçalho. Exige as duas coisas porque a autorização direta é o que dá ao
-   * CRM o identificador da conta, e o token é o que ele apresenta depois.
+   * preferir (o parceiro vira opcional). Hoje só o Instagram tem transporte:
+   * ver o cabeçalho. Exige as duas coisas porque a autorização direta é o que
+   * dá ao CRM o identificador da conta, e o token é o que ele apresenta depois.
    */
   direta: {
     id: "direta",
     rotulo: "conexão direta",
-    providerNoBanco: null,
+    providerNoBanco: CHANNEL_PROVIDER_INSTAGRAM as ProviderDeMensagem,
     exige: ["conta_autorizada", "credencial_da_conta"],
-    implementada: false,
+    implementada: true,
+    soPara: ["instagram"],
   },
   /**
    * A conexão por parceiro homologado. É a que existe hoje, para todas as redes:
@@ -161,7 +164,12 @@ export function portaDaRede(plataforma: string, porta?: PortaSocialId): PortaSoc
  * o modelo não decide por ele.
  */
 export function portaDisponivel(plataforma: string): PortaSocial | null {
-  return portasDaRede(plataforma).find((p) => p.implementada) ?? null;
+  return portasDaRede(plataforma).find((p) => portaAtende(p, plataforma)) ?? null;
+}
+
+/** Esta porta tem transporte para ESTA rede? */
+export function portaAtende(porta: PortaSocial, plataforma: string): boolean {
+  return porta.implementada && (!porta.soPara || porta.soPara.includes(plataforma));
 }
 
 /**

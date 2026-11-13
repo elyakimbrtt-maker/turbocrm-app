@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { capabilitiesOf, PROVIDERS_DE_MENSAGEM } from "@/lib/channels/capabilities";
+import {
+  capabilitiesOf,
+  CHANNEL_PROVIDER_INSTAGRAM,
+  PROVIDERS_DE_MENSAGEM,
+} from "@/lib/channels/capabilities";
 import { CANAIS_DE_CONVERSA } from "@/lib/channels/canais-de-conversa";
 import type { ChannelAdapter, OutboundEnvelope } from "@/lib/channels/types";
 import {
@@ -70,15 +74,17 @@ describe("o catálogo declara o Instagram pelo modelo neutro", () => {
     expect(portaDaRede("instagram").id).toBe("direta");
   });
 
-  it("a porta direta é declarada SEM transporte — é o que trava o #965", () => {
+  it("a porta direta tem transporte SÓ para o Instagram (migration 9905)", () => {
     const direta = PORTAS_SOCIAIS.direta;
-    expect(direta.implementada).toBe(false);
-    // `null` porque o CHECK de `channel_sessions.provider` não tem valor para
-    // ela, e `ChannelAdapter.provider` é obrigatório: não há adapter a montar.
-    expect(direta.providerNoBanco).toBeNull();
-    // A resposta útil é `null`, e não uma exceção: quem pergunta "dá para montar
-    // a direta hoje?" recebe "não" sem ter que tratar erro.
-    expect(portaDisponivel("instagram")?.id).toBe("intermediada");
+    expect(direta.implementada).toBe(true);
+    expect(direta.providerNoBanco).toBe(CHANNEL_PROVIDER_INSTAGRAM);
+    expect(portaDisponivel("instagram")?.id).toBe("direta");
+    // O Facebook declara a porta direta no catálogo, mas sem transporte: a
+    // resposta útil continua sendo a intermediada, sem exceção a tratar.
+    expect(portaDisponivel("facebook")?.id).toBe("intermediada");
+    expect(() =>
+      adaptadorDaPorta({ plataforma: "facebook", porta: "direta", credencial: null }),
+    ).toThrow(PortaSemTransporteError);
   });
 
   it("a porta intermediada é a que já existe, e é a que grava a coluna", () => {
@@ -142,6 +148,7 @@ describe("CONTROLE: os canais que já existiam continuam declarados", () => {
       "zernio",
       "zernio_social",
       "datafy",
+      "instagram_direto",
     ]);
     for (const provider of PROVIDERS_DE_MENSAGEM) {
       const caps = capabilitiesOf(provider);
@@ -267,16 +274,16 @@ describe("o adapter de uma porta sem credencial falha dizendo o que falta", () =
     await expect(adapter.send(ENVELOPE)).rejects.toThrow(PortaSemTransporteError);
   });
 
-  it("a porta direta não vira adapter: falta valor no CHECK de `channel_sessions.provider`", () => {
+  it("a porta direta vira adapter só no Instagram; no Facebook segue sem transporte", () => {
+    expect(
+      adaptadorDaPorta({ plataforma: "instagram", porta: "direta", credencial: null }).provider,
+    ).toBe(CHANNEL_PROVIDER_INSTAGRAM);
     expect(() =>
       adaptadorDaPorta({
-        plataforma: "instagram",
+        plataforma: "facebook",
         porta: "direta",
         credencial: { conta: "conta-1", token: "tok" },
       }),
-    ).toThrow(PortaSemTransporteError);
-    expect(() =>
-      adaptadorDaPorta({ plataforma: "instagram", porta: "direta", credencial: null }),
     ).toThrow(/conexão direta ainda não tem valor em channel_sessions\.provider/);
   });
 

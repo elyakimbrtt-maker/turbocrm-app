@@ -1,5 +1,13 @@
 /**
- * POST /api/v1/webhooks/channel/[token] — entrada por token, para qualquer canal.
+ * GET|POST /api/v1/webhooks/channel/[token] — entrada por token, para qualquer canal.
+ *
+ * O `GET` é o handshake de verificação (`hub.mode=subscribe`, `hub.verify_token`,
+ * `hub.challenge`) do canal que o exige — hoje o Instagram direto. Ele entra NESTA
+ * rota, e não numa família nova de URL, pelo mesmo motivo do POST: o token
+ * identifica a sessão, a sessão diz o canal, e quem decide se há desafio e qual
+ * verify token vale é `desafioDoWebhook`, dentro do seam. A resposta é o
+ * desafio em TEXTO PURO (a Meta recusa o wrapper JSON) — ver a rota do canal
+ * oficial, que tem o mesmo motivo escrito.
  *
  * ─── Por que o caminho NÃO cita o canal ─────────────────────────────────────
  *
@@ -37,12 +45,36 @@ import {
   abrirArquivoDoWebhook,
   fecharArquivoDoWebhook,
 } from "@/lib/channels/arquivo-de-webhook";
-import { acceptsInboundWebhook, handleInboundWebhook, verifyInboundWebhookSignature, inboundPayloadBelongsToSession } from "@/lib/channels/inbound";
+import {
+  acceptsInboundWebhook,
+  desafioDoWebhook,
+  handleInboundWebhook,
+  inboundPayloadBelongsToSession,
+  verifyInboundWebhookSignature,
+} from "@/lib/channels/inbound";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptWebhookSecret } from "@/lib/webhooks/secrets";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+export async function GET(
+  req: NextRequest,
+  ctx: { params: Promise<{ token: string }> },
+): Promise<Response> {
+  const { token } = await ctx.params;
+  if (!token || token.length < 8) return new Response("not found", { status: 404 });
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("channel_sessions")
+    .select("id, organization_id, provider, archived_at")
+    .eq("webhook_path_token", token)
+    .maybeSingle();
+  if (!data || data.archived_at) return new Response("not found", { status: 404 });
+  const desafio = await desafioDoWebhook(admin, data, req.nextUrl.searchParams);
+  if (desafio === null) return new Response("forbidden", { status: 403 });
+  return new Response(desafio, { status: 200, headers: { "content-type": "text/plain" } });
+}
 
 export async function POST(
   req: NextRequest,

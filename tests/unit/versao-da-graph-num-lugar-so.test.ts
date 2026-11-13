@@ -37,7 +37,7 @@ import path from "node:path";
 import ts from "typescript";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { VERSAO_PADRAO_DA_GRAPH, graphVersion } from "@/lib/graph-version";
+import { VERSAO_PADRAO_DA_GRAPH, VERSAO_PADRAO_DO_INSTAGRAM, graphVersion } from "@/lib/graph-version";
 
 const RAIZ = path.join(__dirname, "..", "..");
 
@@ -205,7 +205,8 @@ describe("a versão da Graph tem um lugar só", () => {
       (linha) => linha.match(LITERAL_DE_VERSAO)![0],
     );
 
-    expect(literais).toEqual([VERSAO_PADRAO_DA_GRAPH]);
+    // A Instagram API (canal Instagram direto, 9905) tem versão própria, no mesmo módulo.
+    expect(literais).toEqual([VERSAO_PADRAO_DA_GRAPH, VERSAO_PADRAO_DO_INSTAGRAM]);
   });
 
   it("a catraca reconhece a versão no meio do endereço, e não confunde versão de outra coisa", () => {

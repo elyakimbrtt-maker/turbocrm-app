@@ -46,3 +46,17 @@ export function graphVersion(): string {
   const daVariavel = process.env.META_GRAPH_VERSION?.trim();
   return daVariavel ? daVariavel : VERSAO_PADRAO_DA_GRAPH;
 }
+
+/**
+ * A versão da Instagram API com login do Instagram (canal Instagram direto).
+ *
+ * É OUTRA plataforma de versões — a Instagram API com login do Instagram não anda
+ * junto da Graph do WhatsApp —, então tem default e variável próprios
+ * (`INSTAGRAM_GRAPH_VERSION`), com a mesma regra de vazio = ausente.
+ */
+export const VERSAO_PADRAO_DO_INSTAGRAM = "v23.0";
+
+export function instagramGraphVersion(): string {
+  const daVariavel = process.env.INSTAGRAM_GRAPH_VERSION?.trim();
+  return daVariavel ? daVariavel : VERSAO_PADRAO_DO_INSTAGRAM;
+}

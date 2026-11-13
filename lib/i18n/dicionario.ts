@@ -40,6 +40,19 @@ import { TEXTOS_AGENDA_SERVICOS } from "./agenda-servicos";
 type Traducoes = Record<string, Partial<Record<Exclude<Idioma, "pt-BR">, string>>>;
 
 export const DICIONARIO: Traducoes = {
+  // Instagram — conexão direta (migration 9905)
+  "Instagram conectado:": { es: "Instagram conectado:" },
+  "Instagram — conexão direta": { es: "Instagram — conexión directa" },
+  "Direct e comentários da sua conta profissional chegam direto da Meta, sem intermediário. Cada pessoa nova vira um card em NOVO LEAD.": { es: "Los mensajes directos y comentarios de tu cuenta profesional llegan directo de Meta, sin intermediario. Cada persona nueva se convierte en una tarjeta en NUEVO LEAD." },
+  "Token renovado automaticamente; vence em": { es: "Token renovado automáticamente; vence el" },
+  "Cole isto no app da Meta": { es: "Pega esto en la app de Meta" },
+  "No produto Instagram do seu app, em Webhooks: cole a URL de callback e o token de verificação, e assine os campos abaixo. Sem esse passo nada chega ao CRM.": { es: "En el producto Instagram de tu app, en Webhooks: pega la URL de callback y el token de verificación, y suscríbete a los campos de abajo. Sin este paso no llega nada al CRM." },
+  "Conectar Instagram": { es: "Conectar Instagram" },
+  "O token de longa duração e o App Secret vêm do app da Meta (produto Instagram, login do Instagram). O token é validado com o Instagram antes de ser gravado — se não valer, nada é salvo.": { es: "El token de larga duración y el App Secret vienen de la app de Meta (producto Instagram, inicio de sesión de Instagram). El token se valida con Instagram antes de guardarse; si no es válido, no se guarda nada." },
+  "Token de acesso (longa duração)": { es: "Token de acceso (larga duración)" },
+  "App Secret do Instagram": { es: "App Secret de Instagram" },
+  "Guardados cifrados. Não são exibidos de volta em nenhum momento.": { es: "Se guardan cifrados. No se vuelven a mostrar en ningún momento." },
+  "Validando com o Instagram…": { es: "Validando con Instagram…" },
   "Avisar também nas transferências para atendimento humano": { es: "Avisar también en las transferencias a atención humana" },
   "Cada transferência manda uma mensagem ao mesmo número e conta no limite diário dele. Desligue para receber só os avisos de casos.": { es: "Cada transferencia envía un mensaje al mismo número y cuenta en su límite diario. Desactívalo para recibir solo los avisos de casos." },
   "Também param de sair, até você cadastrar um número de novo: os avisos de transferência para atendimento humano, os avisos da Agenda que usam o mesmo número dos casos e as automações com a ação \"Mensagem para a equipe\".": { es: "También dejan de salir, hasta que registres otro número: los avisos de transferencia a atención humana, los avisos de la Agenda que usan el mismo número que los casos y las automatizaciones con la acción \"Mensaje para el equipo\"." },
