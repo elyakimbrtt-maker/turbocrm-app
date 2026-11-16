@@ -30,7 +30,11 @@ export const metadata: Metadata = { title: "Funis" };
  * atalho de platform admin, que as rotas não concedem por padrão): mostrar um
  * botão que o servidor recusaria seria prometer o que não se cumpre.
  */
-export default async function KanbanPickerPage() {
+export default async function KanbanPickerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lista?: string }>;
+}) {
   const user = await requireAuth();
   const activeOrg = await resolveActiveOrg(user);
   if (!activeOrg) redirect("/app");
@@ -53,6 +57,9 @@ export default async function KanbanPickerPage() {
 
   const todos = (data ?? []) as Array<FunilDaLista & { is_archived: boolean }>;
   const funis = todos.filter((f) => !f.is_archived);
+  // TurboCRM: com um funil só, a lista é um clique a mais entre o menu e o
+  // quadro. Vai direto; o quadro tem o atalho "Funis" (`?lista=1`) para gerenciar.
+  if (funis.length === 1 && !(await searchParams).lista) redirect(`/app/pipelines/${funis[0]!.id}`);
   const podeGerenciar = ROLE_RANK[activeOrg.role] >= ROLE_RANK.manager;
   // O arquivo só vai para quem pode mexer nele: tirar do arquivo e excluir são
   // `requireRole("manager")` nas rotas, e mostrar a gaveta a quem receberia 403

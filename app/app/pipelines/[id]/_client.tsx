@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CHAVE_VOLTAR_AO_FUNIL } from "@/lib/turbocrm/voltar-ao-funil";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useT } from "@/hooks/i18n/useT";
@@ -95,6 +96,14 @@ export function PipelinePageClient({
   etapasIniciais: Stage[];
 }) {
   const t = useT();
+  // TurboCRM: o Inbox aberto a partir daqui oferece "← Funil" de volta a este quadro.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(CHAVE_VOLTAR_AO_FUNIL, `/app/pipelines/${pipelineId}`);
+    } catch {
+      /* armazenamento bloqueado: o Inbox segue com "← Conversas" */
+    }
+  }, [pipelineId]);
   /**
    * A VISÃO DO FUNIL (#2770, #3172, item 4 do CR).
    *
@@ -328,6 +337,17 @@ export function PipelinePageClient({
         >
           {nomeAtual}
         </h1>
+        {/* TurboCRM: com um funil só o menu cai direto aqui; este é o caminho
+            de volta para a lista (novo funil, importar planilha, arquivar). */}
+        {!podeTrocar && (
+          <Link
+            href="/app/kanban?lista=1"
+            className="shrink-0 text-xs text-muted-foreground underline underline-offset-4 sm:mr-auto"
+            data-testid="quadro-ir-para-funis"
+          >
+            {t("Funis")}
+          </Link>
+        )}
         {podeTrocar && (
           <Select
             value={funis.some((f) => f.id === pipelineId) ? pipelineId : undefined}

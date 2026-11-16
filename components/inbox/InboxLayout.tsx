@@ -61,6 +61,7 @@ import type { AvisoDeRascunho } from "@/lib/inbox/rascunho-sugerido";
 import { buscaValeConsulta } from "@/lib/inbox/termo-de-busca";
 import { useAutomaticoAtivo } from "@/hooks/ai/useAutomaticoAtivo";
 import { useAlturaVisivel } from "@/lib/ui/altura-visivel";
+import { CHAVE_VOLTAR_AO_FUNIL } from "@/lib/turbocrm/voltar-ao-funil";
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import {
   LIMITES_FICHA,
@@ -243,8 +244,8 @@ const FILTER_TABS: InboxTab[] = ["unassigned", "mine", "all", "closed", "archive
  * Lê ?filter= (G4-02, deep-link). ?filter=all é HONRADO mesmo para agent — a
  * lista volta RLS-scoped (a tab só some cosmeticamente); default: fila.
  */
-function parseFilterParam(v: string | null): InboxTab {
-  return v && FILTER_TABS.includes(v as InboxTab) ? (v as InboxTab) : "unassigned";
+function parseFilterParam(v: string | null, padrao: InboxTab = "unassigned"): InboxTab {
+  return v && FILTER_TABS.includes(v as InboxTab) ? (v as InboxTab) : padrao;
 }
 
 /**
@@ -307,7 +308,12 @@ export function InboxLayout({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const tab = parseFilterParam(searchParams.get("filter"));
+  // TurboCRM: o vendedor abre nas SUAS conversas. A Fila só mostra conversa sem
+  // dono, e a conversa que ele responde vira dele — "sumia" da aba de entrada.
+  const tab = parseFilterParam(
+    searchParams.get("filter"),
+    activeOrg?.role === "agent" ? "mine" : "unassigned",
+  );
   const idNaUrl = searchParams.get("id");
   /**
    * `?tag=` é o destino do link de cada linha do relatório Por etiqueta
@@ -376,6 +382,19 @@ export function InboxLayout({
   }, [tab, setFilterValue]);
 
   const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId ?? idNaUrl);
+  // TurboCRM: veio do quadro do funil direto para uma conversa? Então fechar a
+  // conversa ("← Conversas") devolve ao funil. Entrar no Inbox pelo menu zera.
+  const [voltarAoFunil, setVoltarAoFunil] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      if (idNaUrl || initialSelectedId) setVoltarAoFunil(sessionStorage.getItem(CHAVE_VOLTAR_AO_FUNIL));
+      else sessionStorage.removeItem(CHAVE_VOLTAR_AO_FUNIL);
+    } catch {
+      /* armazenamento bloqueado: segue o caminho de sempre, a lista */
+    }
+    // Só na abertura do Inbox: é ela que diz de onde a pessoa veio.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const ultimoIdNaUrl = useRef(idNaUrl);
   const [visibleIds, setVisibleIds] = useState<string[]>([]);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -1045,10 +1064,18 @@ export function InboxLayout({
               variant="ghost"
               size="sm"
               className="gap-1 px-2"
-              onClick={() => handleSelect(null)}
+              onClick={() => {
+                if (!voltarAoFunil) return handleSelect(null);
+                try {
+                  sessionStorage.removeItem(CHAVE_VOLTAR_AO_FUNIL);
+                } catch {
+                  /* nada a limpar */
+                }
+                router.push(voltarAoFunil);
+              }}
             >
               <CaretLeft size={16} />
-              {t("Conversas")}
+              {voltarAoFunil ? t("Funil") : t("Conversas")}
             </Button>
             <div className="flex-1" />
             {selectedConversation && (

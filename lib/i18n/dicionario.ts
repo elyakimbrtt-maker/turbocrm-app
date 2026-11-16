@@ -1980,6 +1980,10 @@ export const DICIONARIO: Traducoes = {
   "Expandir painel do contato": { es: "Expandir panel del contacto" },
   // O atalho do negócio ativo para o quadro do funil (#3004).
   "Abrir no funil": { es: "Abrir en el embudo" },
+  // TurboCRM: o atalho "Funil" do cabeçalho da conversa.
+  "Abrir o card deste cliente no funil de vendas": { es: "Abrir la tarjeta de este cliente en el embudo de ventas" },
+  "Este cliente ainda não tem card no funil.": { es: "Este cliente todavía no tiene tarjeta en el embudo." },
+  "Não consegui abrir o funil agora. Tente de novo.": { es: "No pude abrir el embudo ahora. Inténtalo de nuevo." },
   "TAGS DA CONVERSA": { es: "ETIQUETAS DE LA CONVERSACIÓN" },
   "DEMANDAS ABERTAS": { es: "CASOS ABIERTOS" },
   "LEADS RECENTES": { es: "LEADS RECIENTES" },

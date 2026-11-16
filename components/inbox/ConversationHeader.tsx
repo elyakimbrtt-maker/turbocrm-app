@@ -42,6 +42,7 @@ import { ParticipantesDaConversa } from "@/components/inbox/ParticipantesDaConve
 import { DialButton } from "@/components/voice/DialButton";
 import { VideoCallButton } from "@/components/inbox/VideoCallButton";
 import { ReservarServicoNaConversa } from "@/components/agenda/ReservarServicoNaConversa";
+import { AbrirNoFunilNaConversa } from "@/components/inbox/AbrirNoFunilNaConversa";
 import { motivoDoContato } from "@/lib/inbox/motivo-do-envio-bloqueado";
 import type { ConversationWithContact } from "@/hooks/inbox/useConversationsRealtime";
 import { rotuloParaAEquipe } from "@/lib/contacts/rotulo-do-contato";
@@ -383,6 +384,7 @@ export function ConversationHeader({
         {!conversation.is_group && c?.id && (
           <DialButton contactId={c.id} hasPhone={!!c.phone_number} />
         )}
+        {!conversation.is_group && c?.id && <AbrirNoFunilNaConversa contactId={c.id} />}
         {!conversation.is_group && c?.id && activeOrg && ROLE_RANK[activeOrg.role] >= ROLE_RANK.agent && (
           <ReservarServicoNaConversa key={`${activeOrg.orgId}:${conversation.id}`} contactId={c.id} conversationId={conversation.id} contactName={displayName}/>
         )}
