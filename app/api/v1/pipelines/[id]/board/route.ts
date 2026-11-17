@@ -696,9 +696,15 @@ export async function GET(req: NextRequest, ctx: RouteCtx): Promise<Response> {
   const board: BoardData = {
     pipeline: pipeline as Pipeline,
     stages: (stages ?? []) as Stage[],
+    // TurboCRM: `source_metadata` (≈4,8 KB por negócio vindo da Meta/importação)
+    // era ~99% de uma leitura de 1,1 MB, e nenhuma tela do quadro o lê. Em rede
+    // de loja a leitura passava dos 10 s do cliente e virava "Erro inesperado".
     leads: leadsComMarcadores.leads.map(
       (lead) =>
-        ocultarProvaMetaNaResposta(lead as unknown as Record<string, unknown>) as unknown as Lead,
+        ({
+          ...(ocultarProvaMetaNaResposta(lead as unknown as Record<string, unknown>) as unknown as Lead),
+          source_metadata: {},
+        }) as Lead,
     ),
   };
 
