@@ -28,6 +28,7 @@ import { CalendarioDoFunil } from "@/components/kanban/CalendarioDoFunil";
 import { ListaDoFunil } from "@/components/kanban/ListaDoFunil";
 import { FilterBar } from "@/components/kanban/FilterBar";
 import { BulkActionBar } from "@/components/kanban/BulkActionBar";
+import { ExportarLeadsDoFunil } from "@/components/kanban/ExportarLeadsDoFunil";
 import { NewLeadDialog } from "@/components/kanban/NewLeadDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -383,6 +384,9 @@ export function PipelinePageClient({
           passar pelo quadro.
         */}
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {data && ROLE_RANK[role] >= ROLE_RANK.manager && (
+            <ExportarLeadsDoFunil leads={filteredLeads} stages={data.stages} nomeDoFunil={nomeAtual} />
+          )}
           {/* A DENSIDADE DOS CARDS (issue #3461, item 2) mora AO LADO das abas
               da visão, e só no Quadro: é a mesma família de escolha ("como eu
               olho este funil"), mas ela não muda o que se vê — muda quanto cabe.

@@ -1984,6 +1984,9 @@ export const DICIONARIO: Traducoes = {
   "Abrir o card deste cliente no funil de vendas": { es: "Abrir la tarjeta de este cliente en el embudo de ventas" },
   "Este cliente ainda não tem card no funil.": { es: "Este cliente todavía no tiene tarjeta en el embudo." },
   "Não consegui abrir o funil agora. Tente de novo.": { es: "No pude abrir el embudo ahora. Inténtalo de nuevo." },
+  "Baixa uma planilha com os cards que estão na tela (use o filtro de Responsável antes)": {
+    es: "Descarga una hoja con las tarjetas en pantalla (usa antes el filtro de Responsable)",
+  },
   "TAGS DA CONVERSA": { es: "ETIQUETAS DE LA CONVERSACIÓN" },
   "DEMANDAS ABERTAS": { es: "CASOS ABIERTOS" },
   "LEADS RECENTES": { es: "LEADS RECIENTES" },
